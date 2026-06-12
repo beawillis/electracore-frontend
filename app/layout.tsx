@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'ElectraCore - Smart Transformer Monitoring',
+  title: 'Electracore Smart Transformer Monitoring System',
   description: 'AI-Powered Smart Transformer Monitoring and Protection System',
   generator: 'v0.app',
   icons: {

@@ -37,8 +37,8 @@ export function Sidebar() {
       <div className="p-4 border-b border-border flex items-center justify-between">
         {isOpen && (
           <div>
-            <h1 className="text-lg font-bold text-primary">ElectraCore</h1>
-            <p className="text-xs text-muted-foreground">Monitoring</p>
+            <h1 className="text-lg font-bold text-primary">Electracore</h1>
+            <p className="text-xs text-muted-foreground">Smart Transformer Monitoring</p>
           </div>
         )}
         <button

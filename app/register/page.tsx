@@ -56,8 +56,8 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-xl p-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">ElectraCore</h1>
-          <p className="text-muted-foreground mb-8">Create your account</p>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Electracore</h1>
+          <p className="text-muted-foreground mb-8">Smart Transformer Monitoring System</p>
 
           {error && (
             <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">

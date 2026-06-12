@@ -32,8 +32,8 @@ export function Navbar() {
       <aside className="hidden lg:flex flex-col w-64 bg-card border-r border-border fixed left-0 top-0 h-screen">
         {/* Logo */}
         <div className="p-6 border-b border-border">
-          <h1 className="text-2xl font-bold text-primary">ElectraCore</h1>
-          <p className="text-xs text-muted-foreground mt-1">Smart Monitoring</p>
+          <h1 className="text-2xl font-bold text-primary">Electracore</h1>
+          <p className="text-xs text-muted-foreground mt-1">Smart Transformer Monitoring</p>
         </div>
 
         {/* Navigation */}
@@ -71,7 +71,7 @@ export function Navbar() {
       {/* Mobile Header */}
       <header className="lg:hidden bg-card border-b border-border sticky top-0 z-40">
         <div className="px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-primary">ElectraCore</h1>
+          <h1 className="text-xl font-bold text-primary">Electracore</h1>
           <button
             onClick={() => setShowMobileMenu(!showMobileMenu)}
             className="p-2 hover:bg-background rounded-lg"
