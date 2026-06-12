@@ -1,33 +1,57 @@
 'use client'
 
-import React from 'react'
-import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { Navbar } from '../components/Navbar'
 
 export default function PredictionsPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken')
+    const userData = localStorage.getItem('user')
+    
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+  }, [router])
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Loading...</div>
+      </div>
+    )
+  }
+
   return (
-    <ProtectedRoute>
-      <div className="flex h-screen bg-background">
-        <Sidebar />
+    <div className="min-h-screen bg-background">
+      <Navbar />
 
-        <main className="flex-1 overflow-y-auto">
-          {/* Header */}
-          <header className="bg-card border-b border-border sticky top-0 z-10">
-            <div className="px-8 py-6">
-              <h1 className="text-3xl font-bold text-foreground">AI Predictions</h1>
-              <p className="text-muted-foreground text-sm">Machine learning-based forecasting</p>
-            </div>
-          </header>
+      <main className="lg:ml-64">
+        <header className="bg-card border-b border-border pt-4 lg:pt-0">
+          <div className="px-6 py-4">
+            <h1 className="text-2xl font-bold text-foreground">AI Predictions</h1>
+            <p className="text-muted-foreground text-sm">Machine learning-based forecasting</p>
+          </div>
+        </header>
 
-          <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Fault Prediction */}
-              <div className="bg-card border border-border rounded-lg p-6">
-                <h2 className="text-lg font-semibold text-foreground mb-4">Fault Prediction</h2>
-                <p className="text-muted-foreground text-sm">
-                  Predicts probability of transformer failure based on historical patterns
-                </p>
-              </div>
+        <div className="px-6 py-12">
+          <div className="bg-card border border-border rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Predictions Module</h2>
+            <p className="text-muted-foreground">This page will display AI-powered predictions and forecasts for your transformers.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
 
               {/* Health Score */}
               <div className="bg-card border border-border rounded-lg p-6">

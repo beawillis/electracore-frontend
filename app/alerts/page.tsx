@@ -1,53 +1,81 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useAlerts, useActiveAlerts } from '@/hooks/useAlerts'
-import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { Sidebar } from '@/components/layout/Sidebar'
-import { Skeleton } from '@/components/ui/skeleton'
-import { formatDateTime, getStatusColor } from '@/utils/formatter'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { Navbar } from '../components/Navbar'
 
 export default function AlertsPage() {
-  const { alerts: activeAlerts, loading: activeLoading } = useActiveAlerts()
-  const { alerts: allAlerts, loading: allLoading } = useAlerts()
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
   const [filter, setFilter] = useState('all')
 
-  const filteredAlerts = filter === 'active' ? activeAlerts : allAlerts
+  useEffect(() => {
+    const token = localStorage.getItem('authToken')
+    const userData = localStorage.getItem('user')
+    
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+  }, [router])
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Loading...</div>
+      </div>
+    )
+  }
 
   return (
-    <ProtectedRoute>
-      <div className="flex h-screen bg-background">
-        <Sidebar />
+    <div className="min-h-screen bg-background">
+      <Navbar />
 
-        <main className="flex-1 overflow-y-auto">
-          {/* Header */}
-          <header className="bg-card border-b border-border sticky top-0 z-10">
-            <div className="px-8 py-6">
-              <h1 className="text-3xl font-bold text-foreground">Alerts</h1>
-              <p className="text-muted-foreground text-sm">Monitor and manage system alerts</p>
-            </div>
-          </header>
+      <main className="lg:ml-64">
+        <header className="bg-card border-b border-border pt-4 lg:pt-0">
+          <div className="px-6 py-4">
+            <h1 className="text-2xl font-bold text-foreground">Alerts</h1>
+            <p className="text-muted-foreground text-sm">Monitor and manage system alerts</p>
+          </div>
+        </header>
 
-          <div className="p-8">
-            {/* Filter */}
-            <div className="mb-6 flex gap-2">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-4 py-2 rounded transition-colors ${
-                  filter === 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border text-foreground hover:bg-background'
-                }`}
-              >
-                All Alerts
-              </button>
-              <button
-                onClick={() => setFilter('active')}
-                className={`px-4 py-2 rounded transition-colors ${
-                  filter === 'active'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border text-foreground hover:bg-background'
-                }`}
+        <div className="px-6 py-12">
+          <div className="mb-6 flex gap-2">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded transition-colors ${
+                filter === 'all'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card border border-border text-foreground hover:bg-background'
+              }`}
+            >
+              All Alerts
+            </button>
+            <button
+              onClick={() => setFilter('active')}
+              className={`px-4 py-2 rounded transition-colors ${
+                filter === 'active'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card border border-border text-foreground hover:bg-background'
+              }`}
+            >
+              Active Only
+            </button>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Alerts Module</h2>
+            <p className="text-muted-foreground">This page will display active and historical alerts from your system.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
               >
                 Active Only
               </button>

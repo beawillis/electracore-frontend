@@ -1,33 +1,57 @@
 'use client'
 
-import React from 'react'
-import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { Navbar } from '../components/Navbar'
 
 export default function ReportsPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken')
+    const userData = localStorage.getItem('user')
+    
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+  }, [router])
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Loading...</div>
+      </div>
+    )
+  }
+
   return (
-    <ProtectedRoute>
-      <div className="flex h-screen bg-background">
-        <Sidebar />
+    <div className="min-h-screen bg-background">
+      <Navbar />
 
-        <main className="flex-1 overflow-y-auto">
-          {/* Header */}
-          <header className="bg-card border-b border-border sticky top-0 z-10">
-            <div className="px-8 py-6">
-              <h1 className="text-3xl font-bold text-foreground">Reports & Analytics</h1>
-              <p className="text-muted-foreground text-sm">Generate and view system reports</p>
-            </div>
-          </header>
+      <main className="lg:ml-64">
+        <header className="bg-card border-b border-border pt-4 lg:pt-0">
+          <div className="px-6 py-4">
+            <h1 className="text-2xl font-bold text-foreground">Reports & Analytics</h1>
+            <p className="text-muted-foreground text-sm">Generate and view system reports</p>
+          </div>
+        </header>
 
-          <div className="p-8">
-            <div className="bg-card border border-border rounded-lg p-8">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Available Reports</h2>
-
-              <div className="space-y-3">
-                <div className="p-4 bg-background rounded cursor-pointer hover:bg-background/80 transition-colors">
-                  <h3 className="font-semibold text-foreground">System Performance Report</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Overall system performance, uptime, and efficiency metrics
+        <div className="px-6 py-12">
+          <div className="bg-card border border-border rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Reports Module</h2>
+            <p className="text-muted-foreground">This page will allow you to generate and download detailed system reports.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
                   </p>
                 </div>
 
