@@ -1,112 +1,97 @@
 'use client'
 
-import React from 'react'
-import ProtectedRoute from '@/components/auth/ProtectedRoute'
-import { Sidebar } from '@/components/layout/Sidebar'
-import { DashboardOverview } from '@/components/dashboard/DashboardOverview'
-import { 
-  TemperatureTrendChart, 
-  LoadDistributionChart, 
-  SystemHealthChart, 
-  AlertTrendChart 
-} from '@/components/dashboard/DashboardCharts'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function DashboardPage() {
-  // Sample data for charts
-  const temperatureData = [
-    { time: '00:00', temperature: 45 },
-    { time: '04:00', temperature: 42 },
-    { time: '08:00', temperature: 48 },
-    { time: '12:00', temperature: 52 },
-    { time: '16:00', temperature: 55 },
-    { time: '20:00', temperature: 50 },
-    { time: '24:00', temperature: 46 },
-  ]
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
 
-  const loadData = [
-    { transformer: 'T-001', load: 65 },
-    { transformer: 'T-002', load: 72 },
-    { transformer: 'T-003', load: 58 },
-    { transformer: 'T-004', load: 81 },
-    { transformer: 'T-005', load: 54 },
-  ]
+  useEffect(() => {
+    const token = localStorage.getItem('authToken')
+    const userData = localStorage.getItem('user')
+    
+    if (!token) {
+      router.push('/login')
+      return
+    }
 
-  const healthData = [
-    { date: 'Mon', health: 95 },
-    { date: 'Tue', health: 94 },
-    { date: 'Wed', health: 92 },
-    { date: 'Thu', health: 93 },
-    { date: 'Fri', health: 91 },
-    { date: 'Sat', health: 89 },
-    { date: 'Sun', health: 90 },
-  ]
+    if (userData) {
+      setUser(JSON.parse(userData))
+    }
+  }, [router])
 
-  const alertData = [
-    { date: 'Mon', critical: 2, high: 5, medium: 8 },
-    { date: 'Tue', critical: 1, high: 4, medium: 6 },
-    { date: 'Wed', critical: 3, high: 7, medium: 10 },
-    { date: 'Thu', critical: 1, high: 3, medium: 5 },
-    { date: 'Fri', critical: 0, high: 2, medium: 4 },
-    { date: 'Sat', critical: 1, high: 4, medium: 7 },
-    { date: 'Sun', critical: 2, high: 6, medium: 9 },
-  ]
+  const handleLogout = () => {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+    router.push('/login')
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Loading...</div>
+      </div>
+    )
+  }
 
   return (
-    <ProtectedRoute>
-      <div className="flex h-screen bg-background">
-        {/* Sidebar */}
-        <Sidebar />
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          {/* Header */}
-          <header className="bg-card border-b border-border sticky top-0 z-10">
-            <div className="px-8 py-6">
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <p className="text-muted-foreground text-sm">Real-time monitoring and analytics</p>
-            </div>
-          </header>
-
-          {/* Content */}
-          <div className="p-8">
-            {/* Overview Cards */}
-            <DashboardOverview />
-
-            {/* Charts Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-              <TemperatureTrendChart data={temperatureData} />
-              <LoadDistributionChart data={loadData} />
-              <SystemHealthChart data={healthData} />
-              <AlertTrendChart data={alertData} />
-            </div>
-
-            {/* Integration Status */}
-            <div className="mt-8 bg-card border border-border rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Integration Status</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-background rounded">
-                  <p className="text-xs text-muted-foreground mb-1">Backend API</p>
-                  <p className="text-sm text-foreground font-semibold">
-                    {process.env.REACT_APP_API_URL || 'Not configured'}
-                  </p>
-                </div>
-                <div className="p-4 bg-background rounded">
-                  <p className="text-xs text-muted-foreground mb-1">Real-Time (Socket.IO)</p>
-                  <p className="text-sm text-foreground font-semibold">
-                    {process.env.REACT_APP_SOCKET_URL || 'Not configured'}
-                  </p>
-                </div>
-                <div className="p-4 bg-background rounded">
-                  <p className="text-xs text-muted-foreground mb-1">MQTT Broker</p>
-                  <p className="text-sm text-foreground font-semibold">
-                    {process.env.REACT_APP_MQTT_URL || 'Not configured'}
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-card border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">ElectraCore Dashboard</h1>
+            <p className="text-muted-foreground text-sm">Welcome, {user?.name || 'User'}</p>
           </div>
-        </main>
-      </div>
-    </ProtectedRoute>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-destructive hover:bg-destructive/90 text-white rounded-lg transition"
+          >
+            Logout
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-card border border-border rounded-lg p-6">
+            <p className="text-muted-foreground text-sm mb-2">Total Transformers</p>
+            <p className="text-3xl font-bold text-foreground">—</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-6">
+            <p className="text-muted-foreground text-sm mb-2">Active Devices</p>
+            <p className="text-3xl font-bold text-foreground">—</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-6">
+            <p className="text-muted-foreground text-sm mb-2">System Health</p>
+            <p className="text-3xl font-bold text-foreground">—</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-6">
+            <p className="text-muted-foreground text-sm mb-2">Critical Alerts</p>
+            <p className="text-3xl font-bold text-foreground">—</p>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Dashboard Coming Soon</h2>
+          <p className="text-muted-foreground mb-6">
+            The full dashboard with real-time monitoring is under development.
+          </p>
+          <div className="space-y-2 text-left inline-block">
+            <h3 className="font-semibold text-foreground mb-3">Next Steps:</h3>
+            <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
+              <li>Build your backend API</li>
+              <li>Configure Socket.IO for real-time updates</li>
+              <li>Setup MQTT for device data</li>
+              <li>Connect frontend to your backend</li>
+              <li>Implement device management</li>
+              <li>Add monitoring and alerts</li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
   )
 }
