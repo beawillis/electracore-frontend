@@ -50,7 +50,7 @@ export function DashboardOverview() {
             value: alerts?.data?.critical ?? 0,
             icon: '⚠️',
           },
-        ].map((stat, idx) => (
+        ].map((stat, idx: number) => (
           <div key={idx} className="bg-card border border-border rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -105,7 +105,7 @@ export function DashboardOverview() {
         <div className="bg-card border border-border rounded-lg p-6">
           <h2 className="text-xl font-bold text-foreground mb-4">Recent Alerts</h2>
           <div className="space-y-2">
-            {alerts.data.recentAlerts.map((alert, idx) => (
+            {alerts.data.recentAlerts.map((alert: any, idx: number) => (
               <div
                 key={idx}
                 className="flex items-center gap-3 p-3 bg-background rounded border-l-4"
