@@ -77,8 +77,6 @@ git clone <repository-url>
 cd electracore-frontend
 
 # Install dependencies
-pnpm install
-# or
 npm install
 ```
 
@@ -95,8 +93,6 @@ REACT_APP_MQTT_URL=ws://localhost:8080
 ### Running Development Server
 
 ```bash
-pnpm dev
-# or
 npm run dev
 ```
 
@@ -105,8 +101,8 @@ Visit `http://localhost:3000` to access the application.
 ### Production Build
 
 ```bash
-pnpm build
-pnpm start
+npm build
+npm start
 ```
 
 ---
