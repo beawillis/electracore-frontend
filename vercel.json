@@ -1,0 +1,8 @@
+{
+  "projectSettings": {
+    "name": "ElectraCore Smart Transformer Monitoring",
+    "framework": "nextjs"
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next"
+}
