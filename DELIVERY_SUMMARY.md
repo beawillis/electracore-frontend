@@ -68,7 +68,7 @@ The **ElectraCore Frontend** has been successfully completed and is ready for pr
 ### 1. Install & Configure
 ```bash
 cd electracore-frontend
-pnpm install
+npm install
 echo "REACT_APP_API_URL=http://localhost:5000/api" > .env.local
 echo "REACT_APP_SOCKET_URL=http://localhost:5000" >> .env.local
 echo "REACT_APP_MQTT_URL=ws://localhost:8080" >> .env.local
@@ -76,7 +76,7 @@ echo "REACT_APP_MQTT_URL=ws://localhost:8080" >> .env.local
 
 ### 2. Start Development
 ```bash
-pnpm dev
+npm run dev
 ```
 
 ### 3. Access Application

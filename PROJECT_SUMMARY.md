@@ -198,7 +198,7 @@ See **BACKEND_INTEGRATION_GUIDE.md** for detailed API specifications.
 
 ### 1. Install Dependencies
 ```bash
-pnpm install
+npm install
 ```
 
 ### 2. Configure Environment
@@ -211,7 +211,7 @@ REACT_APP_MQTT_URL=ws://localhost:8080
 
 ### 3. Start Development Server
 ```bash
-pnpm dev
+npm run dev
 ```
 
 ### 4. Access Application

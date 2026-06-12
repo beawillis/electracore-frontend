@@ -24,7 +24,7 @@ Start here to navigate all project documentation:
 ### Setup (5 minutes)
 ```bash
 # Install dependencies
-pnpm install
+npm install
 
 # Configure environment
 echo "REACT_APP_API_URL=http://localhost:5000/api" > .env.local
@@ -32,7 +32,7 @@ echo "REACT_APP_SOCKET_URL=http://localhost:5000" >> .env.local
 echo "REACT_APP_MQTT_URL=ws://localhost:8080" >> .env.local
 
 # Start dev server
-pnpm dev
+npm run dev
 
 # Visit http://localhost:3000
 ```
