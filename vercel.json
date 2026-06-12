@@ -1,8 +1,0 @@
-{
-  "projectSettings": {
-    "name": "ElectraCore Smart Transformer Monitoring",
-    "framework": "nextjs"
-  },
-  "buildCommand": "npm install --legacy-peer-deps && npm run build",
-  "outputDirectory": ".next"
-}
