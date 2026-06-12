@@ -39,7 +39,10 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="bg-card border-b border-border pt-4 lg:pt-0">
           <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="flex flex-col text-2xl font-bold text-foreground leading-tight">
+              <span>ElectraCore</span>
+              <span className="text-sm font-medium text-muted-foreground">Smart Transformer Monitoring System</span>
+            </h1>
             <p className="text-muted-foreground text-sm">Welcome, {user?.name || 'User'}</p>
           </div>
         </header>
@@ -66,21 +69,10 @@ export default function DashboardPage() {
           </div>
 
           <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-4">Dashboard Coming Soon</h2>
-            <p className="text-muted-foreground mb-6">
-              The full dashboard with real-time monitoring is under development.
-            </p>
-            <div className="space-y-2 text-left inline-block">
-              <h3 className="font-semibold text-foreground mb-3">Next Steps:</h3>
-              <ul className="list-disc list-inside text-muted-foreground space-y-1 text-sm">
-                <li>Build your backend API</li>
-                <li>Configure Socket.IO for real-time updates</li>
-                <li>Setup MQTT for device data</li>
-                <li>Connect frontend to your backend</li>
-                <li>Implement device management</li>
-                <li>Add monitoring and alerts</li>
-              </ul>
-            </div>
+            <h2 className="flex flex-col items-center text-2xl font-bold text-foreground leading-tight mb-4">
+              <span>ElectraCore</span>
+              <span className="text-sm font-medium text-muted-foreground">Smart Transformer Monitoring System</span>
+            </h2>
           </div>
         </div>
       </main>

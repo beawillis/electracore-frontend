@@ -444,28 +444,6 @@ Ensure:
 
 ---
 
-## Next Steps
-
-1. **Build your backend** following the API specifications
-2. **Test API connectivity** with Postman or similar tool
-3. **Configure Socket.IO** for real-time updates
-4. **Setup MQTT broker** for sensor data
-5. **Implement ML service** for AI predictions
-6. **Deploy to production** on your preferred platform
-7. **Monitor system health** using the dashboard
-
----
-
-## Support & Documentation
-
-- **Backend Integration Guide**: See `BACKEND_INTEGRATION_GUIDE.md`
-- **Component Documentation**: Check individual component files
-- **Hook Documentation**: Review hook implementations in `src/hooks/`
-- **Service Documentation**: Check service layer in `src/services/`
-- **API Specifications**: Available in backend repository
-
----
-
 ## Key Technologies
 
 | Technology | Purpose | Version |
