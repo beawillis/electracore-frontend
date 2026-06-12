@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import sensorService from '../services/sensorService';
 
 export const useLiveReadings = (transformerId) => {

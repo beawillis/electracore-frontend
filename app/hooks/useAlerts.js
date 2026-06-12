@@ -1,4 +1,4 @@
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import alertService from '../services/alertService';
 
 export const useAlerts = (filters = {}) => {
