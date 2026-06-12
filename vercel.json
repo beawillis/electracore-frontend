@@ -3,6 +3,6 @@
     "name": "ElectraCore Smart Transformer Monitoring",
     "framework": "nextjs"
   },
-  "buildCommand": "npm run build",
+  "buildCommand": "npm install --legacy-peer-deps && npm run build",
   "outputDirectory": ".next"
 }
