@@ -1,0 +1,44 @@
+import apiClient from './api';
+
+const alertService = {
+  getAllAlerts: async (filters = {}) => {
+    const response = await apiClient.get('/alerts', { params: filters });
+    return response.data;
+  },
+
+  getActiveAlerts: async () => {
+    const response = await apiClient.get('/alerts/active');
+    return response.data;
+  },
+
+  getAlertHistory: async (limit = 100) => {
+    const response = await apiClient.get('/alerts/history', {
+      params: { limit },
+    });
+    return response.data;
+  },
+
+  getAlertById: async (alertId) => {
+    const response = await apiClient.get(`/alerts/${alertId}`);
+    return response.data;
+  },
+
+  acknowledgeAlert: async (alertId) => {
+    const response = await apiClient.put(`/alerts/${alertId}/acknowledge`);
+    return response.data;
+  },
+
+  resolveAlert: async (alertId, resolutionData) => {
+    const response = await apiClient.put(`/alerts/${alertId}/resolve`, resolutionData);
+    return response.data;
+  },
+
+  getNotificationLogs: async (limit = 100) => {
+    const response = await apiClient.get('/alerts/notifications', {
+      params: { limit },
+    });
+    return response.data;
+  },
+};
+
+export default alertService;
