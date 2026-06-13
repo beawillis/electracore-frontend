@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 
+// TransformersPage component that checks for authentication and displays a placeholder for transformer management and monitoring
 export default function TransformersPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)

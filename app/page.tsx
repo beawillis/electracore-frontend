@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
+// Home component that checks for authentication and redirects to dashboard or login page accordingly, with a loading state while checking authentication
 export default function Home() {
   const router = useRouter()
 

@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import dashboardService from '@/services/dashboardService'
-import { formatNumber, formatDateTime, getStatusColor } from '@/utils/formatter'
-import { Skeleton } from '@/components/ui/skeleton'
+import React, { useEffect, useState } from 'react'// Importing necessary libraries and components for the DashboardOverview component, including React, React Query for data fetching, a dashboard service for API calls, utility functions for formatting, and a Skeleton component for loading states
+import { useQuery } from '@tanstack/react-query' // Importing useQuery hook from React Query for managing data fetching and caching in the DashboardOverview component
+import dashboardService from '@/services/dashboardService' // Importing a service module for making API calls related to dashboard data, such as fetching statistics, health status, and alerts
+import { formatNumber, formatDateTime, getStatusColor } from '@/utils/formatter'// Importing utility functions for formatting numbers, dates, and determining status colors based on severity, to be used in the DashboardOverview component for displaying data in a user-friendly format
+import { Skeleton } from '@/components/ui/skeleton'// Importing a Skeleton component for displaying loading placeholders while data is being fetched in the DashboardOverview component, providing a better user experience during loading states
 
+// DashboardOverview component that displays key statistics, system status, and recent alerts for the dashboard, using React Query for data fetching and caching, and styled with the application's theme
 export function DashboardOverview() {
   const { data: stats, isLoading: statsLoading } = useQuery(
     ['dashboardStats'],

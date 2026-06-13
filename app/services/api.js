@@ -1,7 +1,8 @@
-import axios from 'axios';
+import axios from 'axios'; // Centralized API client for making HTTP requests to the backend API
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // Base URL for the API, configurable via environment variable
 
+// Create an Axios instance with default configuration for API requests
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,

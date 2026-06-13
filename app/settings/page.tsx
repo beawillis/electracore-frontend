@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 
+// SettingsPage component that checks for authentication and displays a form for managing user account settings such as name and email
 export default function SettingsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import sensorService from '../services/sensorService';
 
+// Custom hooks for fetching sensor data and details using React Query
 export const useLiveReadings = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['liveReadings', transformerId],
@@ -21,6 +22,7 @@ export const useLiveReadings = (transformerId) => {
   };
 };
 
+// Hook to fetch historical sensor readings for a specific transformer and date range
 export const useHistoricalReadings = (transformerId, startDate, endDate) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['historicalReadings', transformerId, startDate, endDate],
@@ -40,6 +42,7 @@ export const useHistoricalReadings = (transformerId, startDate, endDate) => {
   };
 };
 
+// Hook to fetch sensor details by sensor ID
 export const useSensorDetails = (sensorId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['sensorDetails', sensorId],

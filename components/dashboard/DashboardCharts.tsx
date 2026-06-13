@@ -3,6 +3,7 @@
 import React from 'react'
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
+// DashboardCharts component that renders various charts for the dashboard using Recharts library, including temperature trends, load distribution, system health score, and alert trends, with styling consistent with the application's theme
 export function TemperatureTrendChart({ data = [] }) {
   return (
     <div className="bg-card border border-border rounded-lg p-6">
@@ -35,6 +36,7 @@ export function TemperatureTrendChart({ data = [] }) {
   )
 }
 
+// LoadDistributionChart component that renders a bar chart showing load distribution across transformers, with styling consistent with the application's theme
 export function LoadDistributionChart({ data = [] }) {
   return (
     <div className="bg-card border border-border rounded-lg p-6">

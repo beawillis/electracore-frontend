@@ -1,8 +1,9 @@
-import React, { createContext, useEffect, useState } from 'react';
-import mqttService from '../services/mqttService';
+import React, { createContext, useEffect, useState } from 'react'; // Context for managing MQTT connection and data across the app
+import mqttService from '../services/mqttService'; // Service for handling MQTT connections and subscriptions
 
-export const MQTTContext = createContext();
+export const MQTTContext = createContext(); // Create a context for MQTT
 
+// MQTTProvider component to wrap the app and provide MQTT connection status and data
 export const MQTTProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [deviceStatus, setDeviceStatus] = useState({});
@@ -31,6 +32,7 @@ export const MQTTProvider = ({ children }) => {
     };
   }, []);
 
+  // Function to subscribe to device status updates
   const subscribeToDeviceStatus = (deviceId, callback) => {
     mqttService.subscribeToDeviceStatus(deviceId, (data) => {
       setDeviceStatus((prev) => ({
@@ -41,6 +43,7 @@ export const MQTTProvider = ({ children }) => {
     });
   };
 
+  // Function to subscribe to sensor data updates
   const subscribeToSensorData = (transformerId, callback) => {
     mqttService.subscribeToSensorData(transformerId, (data) => {
       setSensorData((prev) => ({

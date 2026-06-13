@@ -4,6 +4,7 @@ import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 
+// ProtectedRoute component that checks for user authentication and redirects to login page if not authenticated, while showing a loading state during authentication check
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { user, loading, isAuthenticated } = useAuth()

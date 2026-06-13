@@ -1,8 +1,9 @@
-import { Button as ButtonPrimitive } from '@base-ui/react/button'
-import { cva, type VariantProps } from 'class-variance-authority'
+import { Button as ButtonPrimitive } from '@base-ui/react/button' // Importing the Button component from a base UI library, which will be used as the underlying component for our custom Button component, allowing us to extend its functionality and styling with class-variance-authority for consistent button styles across the application
+import { cva, type VariantProps } from 'class-variance-authority' // Importing cva and VariantProps from class-variance-authority, which is a utility for creating class name variants based on props, allowing us to define different styles for our Button component based on its variant and size props
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils' // Importing a utility function for conditionally joining class names, which will be used in the Button component to combine the base styles with variant-specific styles and any additional class names passed as props
 
+// Button component that provides various styling variants and sizes using class-variance-authority, allowing for consistent button styles across the application with support for different use cases such as primary actions, secondary actions, destructive actions, and link-style buttons, while also handling disabled states and accessibility features
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {

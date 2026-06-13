@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 
+// SensorsPage component that checks for authentication and displays a placeholder for sensor monitoring
 export default function SensorsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)

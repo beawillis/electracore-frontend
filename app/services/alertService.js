@@ -1,5 +1,6 @@
 import apiClient from './api';
 
+// Service for interacting with alert-related endpoints to fetch alerts, acknowledge them, and resolve them
 const alertService = {
   getAllAlerts: async (filters = {}) => {
     const response = await apiClient.get('/alerts', { params: filters });

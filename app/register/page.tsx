@@ -3,13 +3,16 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
+// RegisterPage component that provides a registration form and handles user registration logic
 export default function RegisterPage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [role, setRole] = useState('viewer')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,6 +46,7 @@ export default function RegisterPage() {
         id: '1',
         email: email,
         name: name,
+        role: role,
       }))
       
       router.push('/dashboard')
@@ -56,7 +60,15 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-xl p-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Electracore</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <Image
+              src="/logo.png"
+               alt="Electracore Logo"
+                width={32}
+                height={32}
+              />
+            <h1 className="text-3xl font-bold text-foreground">Electracore</h1>
+          </div>
           <p className="text-muted-foreground mb-8">Smart Transformer Monitoring System</p>
 
           {error && (
@@ -120,6 +132,23 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 disabled={loading}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Role
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-4 py-3 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                disabled={loading}
+              >
+                <option value="viewer">Viewer</option>
+                <option value="operator">Operator</option>
+                <option value="technician">Technician</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             <button

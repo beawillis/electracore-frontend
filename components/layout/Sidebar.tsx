@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 
+// Sidebar component that provides navigation links to different sections of the application, displays user information, and includes a logout button, with responsive design for collapsing the sidebar and styling consistent with the application's theme
 const menuItems = [
   { icon: '📊', label: 'Dashboard', href: '/dashboard' },
   { icon: '⚡', label: 'Transformers', href: '/transformers' },
@@ -15,6 +17,7 @@ const menuItems = [
   { icon: '📋', label: 'Reports', href: '/reports' },
   { icon: '⚙️', label: 'Settings', href: '/settings' },
 ]
+
 
 export function Sidebar() {
   const router = useRouter()
@@ -36,10 +39,28 @@ export function Sidebar() {
       {/* Header */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         {isOpen && (
-          <div>
-            <h1 className="text-lg font-bold text-primary">Electracore</h1>
-            <p className="text-xs text-muted-foreground">Smart Transformer Monitoring</p>
+          <div className="flex items-center gap-2 flex-1">
+            <Image
+              src="/logo.png"
+              alt="Electracore Logo"
+              width={24}
+              height={24}
+              className="w-6 h-auto"
+            />
+            <div>
+              <h1 className="text-lg font-bold text-primary">Electracore</h1>
+              <p className="text-xs text-muted-foreground">Smart Transformer Monitoring</p>
+            </div>
           </div>
+        )}
+        {!isOpen && (
+          <Image
+            src="/logo.png"
+            alt="Electracore Logo"
+            width={24}
+            height={24}
+            className="w-6 h-auto"
+          />
         )}
         <button
           onClick={() => setIsOpen(!isOpen)}

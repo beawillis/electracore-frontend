@@ -1,9 +1,11 @@
-'use client'
+'use client' // Dashboard page with authentication check and main content layout
 
+// Import necessary hooks and components
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 
+// DashboardPage component that checks for authentication and displays the main dashboard content
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)

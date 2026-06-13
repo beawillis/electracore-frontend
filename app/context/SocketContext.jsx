@@ -1,7 +1,9 @@
-import React, { createContext, useEffect, useState } from 'react';
-import socketService from '../services/socketService';
+import React, { createContext, useEffect, useState } from 'react';// Context for managing WebSocket connection and real-time data across the app
+import socketService from '../services/socketService';// Service for handling WebSocket connections and subscriptions
 
-export const SocketContext = createContext();
+export const SocketContext = createContext(); // Create a context for WebSocket
+
+// SocketProvider component to wrap the app and provide WebSocket connection status and real-time data
 
 export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
@@ -45,6 +47,7 @@ export const SocketProvider = ({ children }) => {
     };
   }, []);
 
+  // Function to subscribe to specific transformer updates
   const subscribeToTransformer = (transformerId, callback) => {
     socketService.subscribeToTransformerUpdates(transformerId, callback);
   };

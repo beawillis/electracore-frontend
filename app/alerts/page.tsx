@@ -1,5 +1,6 @@
-'use client'
+'use client' // require client-side rendering
 
+// mock data and utilities for alerts page
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
@@ -62,6 +63,7 @@ const SAMPLE_ALERTS = [
   },
 ]
 
+// Utility to get color based on severity
 const getSeverityColor = (severity: string) => {
   switch (severity) {
     case 'critical':
@@ -77,6 +79,7 @@ const getSeverityColor = (severity: string) => {
   }
 }
 
+// Utility to format time difference
 const formatTime = (date: Date) => {
   const now = new Date()
   const diff = now.getTime() - date.getTime()
@@ -93,6 +96,7 @@ const formatTime = (date: Date) => {
   }
 }
 
+// Main Alerts Page Component
 export default function AlertsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
@@ -120,6 +124,7 @@ export default function AlertsPage() {
     )
   }
 
+  // Filter alerts based on selected filter
   const filteredAlerts = filter === 'active' 
     ? SAMPLE_ALERTS.filter(a => a.status === 'active')
     : SAMPLE_ALERTS

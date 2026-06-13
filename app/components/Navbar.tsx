@@ -1,9 +1,12 @@
-'use client'
+'use client' // Navbar component for desktop and mobile navigation
 
+// Imports
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+// Navigation items for the sidebar and mobile menu
 const navigationItems = [
   { name: 'Dashboard', href: '/dashboard', icon: '📊' },
   { name: 'Transformers', href: '/transformers', icon: '⚡' },
@@ -15,6 +18,7 @@ const navigationItems = [
   { name: 'Settings', href: '/settings', icon: '⚙️' },
 ]
 
+// Navbar component with responsive design for desktop and mobile
 export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
@@ -32,10 +36,18 @@ export function Navbar() {
       <aside className="hidden lg:flex flex-col w-64 bg-card border-r border-border fixed left-0 top-0 h-screen">
         {/* Logo */}
         <div className="p-6 border-b border-border">
-          <h1 className="flex flex-col text-2xl font-bold text-primary leading-tight">
-            <span>ElectraCore</span>
-            <span className="text-xs font-medium text-muted-foreground">Smart Transformer Monitoring System</span>
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <Image
+            src="/logo.png"
+            alt="Electracore Logo"
+             width={32}
+              height={32}
+             />
+            <div>
+              <h1 className="text-2xl font-bold text-primary">ElectraCore</h1>
+              <p className="text-xs font-medium text-muted-foreground">Smart Transformer Monitoring System</p>
+            </div>
+          </div>
         </div>
 
         {/* Navigation */}

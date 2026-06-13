@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import transformerService from '../services/transformerService';
 
+// Custom hooks for fetching transformer data and details using React Query
 export const useTransformers = (filters = {}) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['transformers', filters],
@@ -20,6 +21,7 @@ export const useTransformers = (filters = {}) => {
   };
 };
 
+// Hook to fetch a single transformer by ID
 export const useTransformerById = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['transformer', transformerId],
@@ -40,6 +42,7 @@ export const useTransformerById = (transformerId) => {
   };
 };
 
+// Hook to fetch transformer health status by ID
 export const useTransformerHealth = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['transformerHealth', transformerId],
@@ -60,6 +63,7 @@ export const useTransformerHealth = (transformerId) => {
   };
 };
 
+// Hook to fetch transformer analytics for a specific transformer and date range
 export const useTransformerAnalytics = (transformerId, dateRange = {}) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['transformerAnalytics', transformerId, dateRange],
@@ -79,6 +83,7 @@ export const useTransformerAnalytics = (transformerId, dateRange = {}) => {
   };
 };
 
+// Hook to fetch sensors associated with a specific transformer
 export const useTransformerSensors = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['transformerSensors', transformerId],

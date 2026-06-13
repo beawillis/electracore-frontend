@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import deviceService from '../services/deviceService';
 
+// Custom hooks for fetching device data and status using React Query
 export const useDevices = (filters = {}) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['devices', filters],
@@ -20,6 +21,7 @@ export const useDevices = (filters = {}) => {
   };
 };
 
+// Hook to fetch a single device by ID
 export const useDeviceById = (deviceId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['device', deviceId],
@@ -40,6 +42,7 @@ export const useDeviceById = (deviceId) => {
   };
 };
 
+// Hook to fetch device status by ID
 export const useDeviceStatus = (deviceId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['deviceStatus', deviceId],
@@ -60,6 +63,7 @@ export const useDeviceStatus = (deviceId) => {
   };
 };
 
+// Hook to fetch device logs with pagination support
 export const useDeviceLogs = (deviceId, limit = 100) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['deviceLogs', deviceId, limit],

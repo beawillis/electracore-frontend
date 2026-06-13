@@ -87,7 +87,7 @@ const getTrendIcon = (trend: string) => {
       return '•'
   }
 }
-
+// Utility to get color based on trend
 const getTrendColor = (trend: string) => {
   switch (trend) {
     case 'improving':
@@ -100,7 +100,7 @@ const getTrendColor = (trend: string) => {
       return '#6b7280'
   }
 }
-
+ // Utility to format time difference in a human-readable way
 const formatTime = (date: Date) => {
   const now = new Date()
   const diff = now.getTime() - date.getTime()
@@ -113,7 +113,7 @@ const formatTime = (date: Date) => {
     return `${hours}h ago`
   }
 }
-
+// PredictionsPage component that displays AI predictions for transformers and devices
 export default function PredictionsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
@@ -141,6 +141,7 @@ export default function PredictionsPage() {
     )
   }
 
+  // Sort predictions based on selected criteria
   const sortedPredictions = [...SAMPLE_PREDICTIONS].sort((a, b) => {
     if (sortBy === 'health') return b.healthScore - a.healthScore
     if (sortBy === 'risk') return b.failureProbability - a.failureProbability

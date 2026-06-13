@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import aiService from '../services/aiService';
 
+// Custom hooks for fetching AI predictions and recommendations using React Query
 export const usePredictions = () => {
   const { data, isLoading, error, refetch } = useQuery(
     ['predictions'],
@@ -20,6 +21,7 @@ export const usePredictions = () => {
   };
 };
 
+// Hook to fetch fault prediction for a specific transformer
 export const useFaultPrediction = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['faultPrediction', transformerId],
@@ -40,6 +42,7 @@ export const useFaultPrediction = (transformerId) => {
   };
 };
 
+// Hook to fetch maintenance recommendations for a specific transformer
 export const useHealthScore = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['healthScore', transformerId],
@@ -60,6 +63,7 @@ export const useHealthScore = (transformerId) => {
   };
 };
 
+// Hook to fetch failure forecast for a specific transformer
 export const useFailureForecast = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['failureForecast', transformerId],
@@ -80,6 +84,7 @@ export const useFailureForecast = (transformerId) => {
   };
 };
 
+// Hook to fetch maintenance recommendations for a specific transformer
 export const useRecommendations = (transformerId) => {
   const { data, isLoading, error, refetch } = useQuery(
     ['recommendations', transformerId],

@@ -1,9 +1,10 @@
-'use client'
+'use client' // Devices page with authentication check and placeholder content for device management
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 
+// DevicesPage component that checks for authentication and displays a placeholder for device management
 export default function DevicesPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)

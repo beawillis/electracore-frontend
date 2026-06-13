@@ -1,9 +1,11 @@
-'use client'
+'use client' // Login page with form handling and mock authentication logic
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
+// LoginPage component that provides a login form and handles authentication logic
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -42,7 +44,16 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-xl p-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Electracore</h1>
+          <div className="flex items-center gap-3 mb-2">
+            
+            <Image
+             src="/logo.png"
+             alt="Electracore Logo"
+             width={32}
+              height={32}
+             />
+            <h1 className="text-3xl font-bold text-foreground">Electracore</h1>
+          </div>
           <p className="text-muted-foreground mb-8">Smart Transformer Monitoring System</p>
 
           {error && (

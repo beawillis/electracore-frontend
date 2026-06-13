@@ -1,13 +1,14 @@
-import apiClient from './api';
+import apiClient from './api'; // Service for handling authentication-related API calls such as login, registration, profile management, and token verification
 
+// Service for handling API calls related to authentication such as login, registration, profile management, and token verification
 const authService = {
   login: async (email, password) => {
     const response = await apiClient.post('/auth/login', { email, password });
     return response.data;
   },
 
-  register: async (email, password, name) => {
-    const response = await apiClient.post('/auth/register', { email, password, name });
+  register: async (email, password, name, role = 'viewer') => {
+    const response = await apiClient.post('/auth/register', { email, password, name, role });
     return response.data;
   },
 

@@ -1,8 +1,9 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
-import authService from '../services/authService';
+import React, { createContext, useState, useCallback, useEffect } from 'react'; // Context for managing authentication state and actions across the app
+import authService from '../services/authService'; // Service for handling API calls related to authentication
 
-export const AuthContext = createContext();
+export const AuthContext = createContext(); // Create a context for authentication
 
+// AuthProvider component to wrap the app and provide authentication state and actions
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,11 +43,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const register = useCallback(async (email, password, name) => {
+  // Register function to create a new user account
+  const register = useCallback(async (email, password, name, role = 'viewer') => {
     setLoading(true);
     setError(null);
     try {
-      const response = await authService.register(email, password, name);
+      const response = await authService.register(email, password, name, role);
       const userData = response.user || response;
       
       localStorage.setItem('authToken', response.token);
@@ -62,13 +64,15 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
-
+ 
+  // Logout function to clear user data and token from localStorage
   const logout = useCallback(() => {
     authService.logout();
     setUser(null);
     setError(null);
   }, []);
 
+  // Update profile function to allow users to update their profile information
   const updateProfile = useCallback(async (data) => {
     setLoading(true);
     setError(null);

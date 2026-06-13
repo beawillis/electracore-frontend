@@ -110,6 +110,7 @@ const getCategoryColor = (category: string) => {
   return colors[category] || '#6b7280'
 }
 
+// ReportsPage component that displays a list of generated reports with filtering and actions
 const formatDate = (date: Date) => {
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
@@ -120,6 +121,7 @@ const formatDate = (date: Date) => {
   }).format(date)
 }
 
+// Utility to get color based on category
 export default function ReportsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
