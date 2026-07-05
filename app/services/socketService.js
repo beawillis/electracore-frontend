@@ -1,15 +1,21 @@
 import io from 'socket.io-client';
+import { API_ROOT_URL, getStoredToken } from './api';
 
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL ||
+  process.env.REACT_APP_SOCKET_URL ||
+  API_ROOT_URL;
 
 let socket = null;
 
 const socketService = {
   connect: () => {
     if (!socket) {
+      // The backend receives hardware updates and should forward them over Socket.IO.
+      // Keeping one shared socket prevents every page or hook from opening its own connection.
       socket = io(SOCKET_URL, {
         auth: {
-          token: localStorage.getItem('authToken'),
+          token: getStoredToken(),
         },
         reconnection: true,
         reconnectionDelay: 1000,
@@ -37,15 +43,22 @@ const socketService = {
 
   on: (event, callback) => {
     if (!socket) socketService.connect();
+    if (!socket || !callback) return;
     socket.on(event, callback);
   },
 
   off: (event, callback) => {
-    if (socket) socket.off(event, callback);
+    if (!socket) return;
+    if (callback) {
+      socket.off(event, callback);
+    } else {
+      socket.off(event);
+    }
   },
 
   emit: (event, data) => {
     if (!socket) socketService.connect();
+    if (!socket) return;
     socket.emit(event, data);
   },
 

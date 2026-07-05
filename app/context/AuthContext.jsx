@@ -27,9 +27,14 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authService.login(email, password);
-      const userData = response.user || response;
+      const userData = response.user;
+
+      if (!response.token || !userData) {
+        throw new Error('Login response did not include a token and user profile');
+      }
       
       localStorage.setItem('authToken', response.token);
+      localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
@@ -49,9 +54,14 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await authService.register(email, password, name, role);
-      const userData = response.user || response;
+      const userData = response.user;
+
+      if (!response.token || !userData) {
+        throw new Error('Registration response did not include a token and user profile');
+      }
       
       localStorage.setItem('authToken', response.token);
+      localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       

@@ -126,6 +126,7 @@ export default function ReportsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -154,6 +155,10 @@ export default function ReportsPage() {
     ? SAMPLE_REPORTS 
     : SAMPLE_REPORTS.filter(r => r.category === selectedCategory)
 
+  const handleReportAction = (action: string, title?: string) => {
+    setMessage(`${action}${title ? `: ${title}` : ''}`)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -167,6 +172,12 @@ export default function ReportsPage() {
         </header>
 
         <div className="px-6 py-8">
+          {message && (
+            <div className="mb-6 p-3 bg-primary/10 border border-primary/20 rounded text-primary text-sm">
+              {message}
+            </div>
+          )}
+
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-card border border-border rounded-lg p-4">
@@ -258,13 +269,25 @@ export default function ReportsPage() {
 
                     {/* Right Column - Actions */}
                     <div className="flex flex-col gap-2">
-                      <button className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium">
+                      <button
+                        type="button"
+                        onClick={() => handleReportAction('Download requested', report.title)}
+                        className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium"
+                      >
                         Download
                       </button>
-                      <button className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium">
+                      <button
+                        type="button"
+                        onClick={() => handleReportAction('Viewing details', report.title)}
+                        className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
+                      >
                         View Details
                       </button>
-                      <button className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium">
+                      <button
+                        type="button"
+                        onClick={() => handleReportAction('Share requested', report.title)}
+                        className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
+                      >
                         Share
                       </button>
                     </div>
@@ -284,7 +307,11 @@ export default function ReportsPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Create a custom report by selecting specific date ranges, metrics, and devices.
             </p>
-            <button className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium">
+            <button
+              type="button"
+              onClick={() => handleReportAction('New custom report flow opened')}
+              className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium"
+            >
               New Report
             </button>
           </div>

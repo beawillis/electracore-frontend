@@ -1,26 +1,25 @@
-'use client' // Devices page with authentication check and placeholder content for device management
+'use client'
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
+import { useDevices } from '../hooks/useDevices'
 
-// DevicesPage component that checks for authentication and displays a placeholder for device management
 export default function DevicesPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const { devices, loading, error, refetch } = useDevices()
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token')
     const userData = localStorage.getItem('user')
-    
+
     if (!token) {
       router.push('/login')
       return
     }
 
-    if (userData) {
-      setUser(JSON.parse(userData))
-    }
+    if (userData) setUser(JSON.parse(userData))
   }, [router])
 
   if (!user) {
@@ -37,20 +36,57 @@ export default function DevicesPage() {
 
       <main className="lg:ml-64">
         <header className="bg-card border-b border-border pt-4 lg:pt-0">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-foreground">Devices</h1>
-            <p className="text-muted-foreground text-sm">Manage IoT devices and sensors</p>
+          <div className="px-6 py-4 flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Devices</h1>
+              <p className="text-muted-foreground text-sm">Live IoT device status from the backend</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded text-sm font-medium"
+            >
+              Refresh
+            </button>
           </div>
         </header>
 
-        <div className="px-6 py-12">
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-foreground mb-4">Devices Module</h2>
-            <p className="text-muted-foreground">This page will display all connected IoT devices and their status.</p>
+        <div className="px-6 py-8">
+          {Boolean(error) && (
+            <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
+              {(error as any)?.response?.data?.message || (error as Error)?.message || 'Unable to load devices'}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {loading ? (
+              <div className="bg-card border border-border rounded-lg p-6 text-muted-foreground">Loading devices...</div>
+            ) : devices.length > 0 ? (
+              devices.map((device: any) => (
+                <div key={device.id || device._id || device.deviceId} className="bg-card border border-border rounded-lg p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="font-semibold text-foreground">{device.name || device.deviceId || device.id || 'Unnamed device'}</h2>
+                      <p className="text-xs text-muted-foreground">{device.type || 'Device'}</p>
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded bg-background text-foreground">
+                      {device.status || (device.online ? 'online' : 'unknown')}
+                    </span>
+                  </div>
+                  <div className="mt-4 space-y-1 text-sm text-muted-foreground">
+                    <p>Transformer: <span className="text-foreground">{device.transformerId || '-'}</span></p>
+                    <p>Last seen: <span className="text-foreground">{device.lastSeen || device.updatedAt || '-'}</span></p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="bg-card border border-border rounded-lg p-8 text-center text-muted-foreground md:col-span-3">
+                No devices returned by the backend yet.
+              </div>
+            )}
           </div>
         </div>
       </main>
     </div>
   )
 }
-

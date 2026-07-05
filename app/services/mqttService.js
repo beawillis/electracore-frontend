@@ -1,11 +1,19 @@
 import mqtt from 'mqtt';
 
-const MQTT_URL = process.env.REACT_APP_MQTT_URL || 'ws://localhost:8080';
+const MQTT_URL =
+  process.env.NEXT_PUBLIC_MQTT_URL ||
+  process.env.REACT_APP_MQTT_URL ||
+  '';
 
 let client = null;
 
 const mqttService = {
   connect: (options = {}) => {
+    if (!MQTT_URL) {
+      console.warn('MQTT URL is not configured. Set NEXT_PUBLIC_MQTT_URL to enable MQTT.');
+      return null;
+    }
+
     if (!client) {
       client = mqtt.connect(MQTT_URL, {
         clientId: `web-client-${Date.now()}`,
@@ -38,11 +46,13 @@ const mqttService = {
 
   publish: (topic, message) => {
     if (!client) mqttService.connect();
+    if (!client) return;
     client.publish(topic, JSON.stringify(message), { qos: 1 });
   },
 
   subscribe: (topic, callback) => {
     if (!client) mqttService.connect();
+    if (!client) return;
     client.subscribe(topic, { qos: 1 });
     client.on('message', (receivedTopic, message) => {
       if (receivedTopic === topic) {

@@ -1,19 +1,37 @@
-'use client' // Dashboard page with authentication check and main content layout
+'use client'
 
-// Import necessary hooks and components
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Navbar } from '../components/Navbar'
+import dashboardService from '../services/dashboardService'
+import { unwrapData } from '../services/response'
 
-// DashboardPage component that checks for authentication and displays the main dashboard content
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const {
+    data: statsPayload,
+    error,
+  } = useQuery({
+    queryKey: ['dashboard', 'stats'],
+    queryFn: dashboardService.getStats,
+    enabled: !!user,
+    staleTime: 5000,
+    refetchInterval: 30000,
+  })
+
+  const stats = unwrapData(statsPayload, statsPayload) as Record<string, any> | null
+  const displayStat = (...values: any[]) => {
+    const value = values.find((item) => item !== undefined && item !== null)
+    if (typeof value === 'string' || typeof value === 'number') return value
+    return '-'
+  }
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token')
     const userData = localStorage.getItem('user')
-    
+
     if (!token) {
       router.push('/login')
       return
@@ -36,9 +54,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Main Content */}
       <main className="lg:ml-64">
-        {/* Header */}
         <header className="bg-card border-b border-border pt-4 lg:pt-0">
           <div className="px-6 py-4">
             <h1 className="flex flex-col text-2xl font-bold text-foreground leading-tight">
@@ -49,24 +65,29 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* Content */}
         <div className="px-6 py-12">
+          {Boolean(error) && (
+            <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
+              {String((error as any)?.response?.data?.message || (error as Error)?.message || 'Unable to load dashboard stats')}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">Total Transformers</p>
-              <p className="text-3xl font-bold text-foreground">—</p>
+              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.totalTransformers, stats?.transformers)}</p>
             </div>
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">Active Devices</p>
-              <p className="text-3xl font-bold text-foreground">—</p>
+              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.activeDevices, stats?.devices)}</p>
             </div>
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">System Health</p>
-              <p className="text-3xl font-bold text-foreground">—</p>
+              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.systemHealth, stats?.health)}</p>
             </div>
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">Critical Alerts</p>
-              <p className="text-3xl font-bold text-foreground">—</p>
+              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.criticalAlerts, stats?.alerts)}</p>
             </div>
           </div>
 

@@ -4,14 +4,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Eye, EyeOff } from 'lucide-react'
+import authService from '../services/authService'
 
-// RegisterPage component that provides a registration form and handles user registration logic
 export default function RegisterPage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [role, setRole] = useState('viewer')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -22,7 +25,10 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      if (!name || !email || !password || !confirmPassword) {
+      const normalizedEmail = email.trim().toLowerCase()
+      const trimmedName = name.trim()
+
+      if (!trimmedName || !normalizedEmail || !password || !confirmPassword) {
         setError('Please fill in all fields')
         setLoading(false)
         return
@@ -40,18 +46,21 @@ export default function RegisterPage() {
         return
       }
 
-      // Mock registration
-      localStorage.setItem('authToken', 'mock-token-' + Date.now())
-      localStorage.setItem('user', JSON.stringify({
-        id: '1',
-        email: email,
-        name: name,
-        role: role,
-      }))
-      
+      const response = await authService.register(normalizedEmail, password, trimmedName, role)
+
+      if (!response.token || !response.user) {
+        throw new Error('Registration response did not include a token and user profile')
+      }
+
+      localStorage.setItem('authToken', response.token)
+      localStorage.setItem('token', response.token)
+      localStorage.setItem('user', JSON.stringify(response.user))
+
       router.push('/dashboard')
-    } catch (err) {
-      setError('Registration failed')
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Registration failed'
+      const alreadyExists = message.toLowerCase().includes('exists') || message.toLowerCase().includes('already')
+      setError(alreadyExists ? 'That email is already registered. Please sign in instead.' : message)
       setLoading(false)
     }
   }
@@ -61,27 +70,25 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-xl p-8">
           <div className="flex items-center gap-3 mb-2">
-            <Image
-              src="/logo.png"
-               alt="Electracore Logo"
-                width={32}
-                height={32}
-              />
+            <Image src="/logo.png" alt="Electracore Logo" width={32} height={32} />
             <h1 className="text-3xl font-bold text-foreground">Electracore</h1>
           </div>
           <p className="text-muted-foreground mb-8">Smart Transformer Monitoring System</p>
 
           {error && (
             <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
-              {error}
+              {error}{' '}
+              {error.includes('sign in') && (
+                <Link href="/login" className="font-semibold underline">
+                  Go to sign in
+                </Link>
+              )}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Full Name
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Full Name</label>
               <input
                 type="text"
                 value={name}
@@ -93,9 +100,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Email</label>
               <input
                 type="email"
                 value={email}
@@ -107,37 +112,53 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                disabled={loading}
-              />
+              <label className="block text-sm font-medium text-foreground mb-2">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full px-4 py-3 pr-12 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                disabled={loading}
-              />
+              <label className="block text-sm font-medium text-foreground mb-2">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm password"
+                  className="w-full px-4 py-3 pr-12 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((current) => !current)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  disabled={loading}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Role
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Role</label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}

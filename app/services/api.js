@@ -1,11 +1,32 @@
-import axios from 'axios'; // Centralized API client for making HTTP requests to the backend API
+import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api'; // Base URL for the API, configurable via environment variable
+export const API_ROOT_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_ROOT_URL ||
+  process.env.REACT_APP_SOCKET_URL ||
+  'https://electracore-backend-production.up.railway.app';
+
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.REACT_APP_API_URL ||
+  `${API_ROOT_URL.replace(/\/$/, '')}/api`;
+
+export const getStoredToken = () => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('authToken') || localStorage.getItem('token');
+};
+
+export const clearStoredAuth = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};
 
 // Create an Axios instance with default configuration for API requests
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT || process.env.REACT_APP_API_TIMEOUT || 15000),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -13,7 +34,7 @@ const apiClient = axios.create({
 
 // Add token to requests
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
+  const token = getStoredToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -24,10 +45,11 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      clearStoredAuth();
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

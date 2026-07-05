@@ -11,6 +11,7 @@ export const MQTTProvider = ({ children }) => {
 
   useEffect(() => {
     const client = mqttService.connect();
+    if (!client) return;
 
     const handleConnect = () => {
       setIsConnected(true);
@@ -22,7 +23,7 @@ export const MQTTProvider = ({ children }) => {
       console.log('MQTT disconnected');
     };
 
-    // Listen to connection events
+    // Listen to broker connection events when a browser MQTT URL is configured.
     client.on('connect', handleConnect);
     client.on('disconnect', handleDisconnect);
 

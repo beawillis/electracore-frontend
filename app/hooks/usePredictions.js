@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import aiService from '../services/aiService';
+import { unwrapData, unwrapList } from '../services/response';
 
 // Custom hooks for fetching AI predictions and recommendations using React Query
 export const usePredictions = () => {
@@ -14,7 +15,7 @@ export const usePredictions = () => {
   );
 
   return {
-    predictions: data?.data || [],
+    predictions: unwrapList(data),
     loading: isLoading,
     error,
     refetch,
@@ -35,7 +36,7 @@ export const useFaultPrediction = (transformerId) => {
   );
 
   return {
-    prediction: data?.data || null,
+    prediction: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -56,7 +57,7 @@ export const useHealthScore = (transformerId) => {
   );
 
   return {
-    score: data?.data || null,
+    score: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -77,7 +78,7 @@ export const useFailureForecast = (transformerId) => {
   );
 
   return {
-    forecast: data?.data || null,
+    forecast: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -98,7 +99,7 @@ export const useRecommendations = (transformerId) => {
   );
 
   return {
-    recommendations: data?.data || [],
+    recommendations: unwrapList(data),
     loading: isLoading,
     error,
     refetch,

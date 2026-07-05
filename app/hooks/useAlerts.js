@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'; // Custom hooks for fetching alerts and notification logs using React Query
 import alertService from '../services/alertService'; // Service for handling API calls related to alerts and notifications
+import { getCount, unwrapList } from '../services/response';
 
 
 // Hook to fetch all alerts with optional filters
@@ -15,7 +16,7 @@ export const useAlerts = (filters = {}) => {
   );
 
   return {
-    alerts: data?.data || [],
+    alerts: unwrapList(data),
     loading: isLoading,
     error,
     refetch,
@@ -35,8 +36,8 @@ export const useActiveAlerts = () => {
   );
 
   return {
-    alerts: data?.data || [],
-    count: data?.count || 0,
+    alerts: unwrapList(data),
+    count: getCount(data, unwrapList(data)),
     loading: isLoading,
     error,
     refetch,
@@ -55,7 +56,7 @@ export const useAlertHistory = (limit = 100) => {
   );
 
   return {
-    history: data?.data || [],
+    history: unwrapList(data),
     loading: isLoading,
     error,
     refetch,
@@ -74,7 +75,7 @@ export const useNotificationLogs = (limit = 100) => {
   );
 
   return {
-    logs: data?.data || [],
+    logs: unwrapList(data),
     loading: isLoading,
     error,
     refetch,

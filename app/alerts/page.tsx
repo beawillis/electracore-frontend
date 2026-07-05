@@ -4,6 +4,8 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
+import { useAlerts } from '../hooks/useAlerts'
+import alertService from '../services/alertService'
 
 // Sample alert data
 const SAMPLE_ALERTS = [
@@ -101,6 +103,8 @@ export default function AlertsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [filter, setFilter] = useState('all')
+  const [alerts, setAlerts] = useState(SAMPLE_ALERTS)
+  const { alerts: backendAlerts, loading, error, refetch } = useAlerts()
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -125,9 +129,28 @@ export default function AlertsPage() {
   }
 
   // Filter alerts based on selected filter
+  const displayedAlerts = backendAlerts.length > 0 ? backendAlerts : alerts
   const filteredAlerts = filter === 'active' 
-    ? SAMPLE_ALERTS.filter(a => a.status === 'active')
-    : SAMPLE_ALERTS
+    ? displayedAlerts.filter((a: any) => a.status === 'active')
+    : displayedAlerts
+
+  const handleAlertAction = async (alertId: string | number) => {
+    try {
+      await alertService.resolveAlert(alertId, { resolvedAt: new Date().toISOString() })
+      refetch()
+      return
+    } catch (err) {
+      console.warn('Backend alert resolve failed, updating local fallback alert only.', err)
+    }
+
+    setAlerts((prev) =>
+      prev.map((alert) =>
+        alert.id === alertId && alert.status === 'active'
+          ? { ...alert, status: 'resolved' }
+          : alert
+      )
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,13 +158,28 @@ export default function AlertsPage() {
 
       <main className="lg:ml-64">
         <header className="bg-card border-b border-border pt-4 lg:pt-0">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-foreground">Alerts</h1>
-            <p className="text-muted-foreground text-sm">Monitor and manage system alerts</p>
+          <div className="px-6 py-4 flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Alerts</h1>
+              <p className="text-muted-foreground text-sm">Monitor and manage system alerts</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded text-sm font-medium"
+            >
+              Refresh
+            </button>
           </div>
         </header>
 
         <div className="px-6 py-8">
+          {Boolean(error) && (
+            <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
+              {(error as any)?.response?.data?.message || (error as Error)?.message || 'Unable to load alerts'}
+            </div>
+          )}
+
           {/* Filter Buttons */}
           <div className="mb-6 flex gap-2">
             <button
@@ -152,7 +190,7 @@ export default function AlertsPage() {
                   : 'bg-card border border-border text-foreground hover:bg-background'
               }`}
             >
-              All Alerts ({SAMPLE_ALERTS.length})
+              All Alerts ({displayedAlerts.length})
             </button>
             <button
               onClick={() => setFilter('active')}
@@ -162,7 +200,7 @@ export default function AlertsPage() {
                   : 'bg-card border border-border text-foreground hover:bg-background'
               }`}
             >
-              Active Only ({SAMPLE_ALERTS.filter(a => a.status === 'active').length})
+              Active Only ({displayedAlerts.filter((a: any) => a.status === 'active').length})
             </button>
           </div>
 
@@ -186,8 +224,10 @@ export default function AlertsPage() {
 
           {/* Alerts List */}
           <div className="space-y-3">
-            {filteredAlerts.length > 0 ? (
-              filteredAlerts.map((alert) => (
+            {loading ? (
+              <div className="bg-card border border-border rounded-lg p-6 text-muted-foreground">Loading alerts...</div>
+            ) : filteredAlerts.length > 0 ? (
+              filteredAlerts.map((alert: any) => (
                 <div
                   key={alert.id}
                   className="bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
@@ -219,7 +259,11 @@ export default function AlertsPage() {
                         </span>
                       </div>
                     </div>
-                    <button className="px-3 py-1 text-xs bg-background border border-border rounded hover:bg-background/80 text-foreground transition-colors whitespace-nowrap">
+                    <button
+                      type="button"
+                      onClick={() => handleAlertAction(alert.id)}
+                      className="px-3 py-1 text-xs bg-background border border-border rounded hover:bg-background/80 text-foreground transition-colors whitespace-nowrap"
+                    >
                       {alert.status === 'active' ? 'Resolve' : 'View'}
                     </button>
                   </div>

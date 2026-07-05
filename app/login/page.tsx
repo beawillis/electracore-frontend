@@ -1,15 +1,17 @@
-'use client' // Login page with form handling and mock authentication logic
+'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Eye, EyeOff } from 'lucide-react'
+import authService from '../services/authService'
 
-// LoginPage component that provides a login form and handles authentication logic
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -19,23 +21,27 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      if (!email || !password) {
+      const normalizedEmail = email.trim().toLowerCase()
+
+      if (!normalizedEmail || !password) {
         setError('Please enter email and password')
         setLoading(false)
         return
       }
 
-      // Mock authentication
-      localStorage.setItem('authToken', 'mock-token-' + Date.now())
-      localStorage.setItem('user', JSON.stringify({
-        id: '1',
-        email: email,
-        name: email.split('@')[0],
-      }))
-      
+      const response = await authService.login(normalizedEmail, password)
+
+      if (!response.token || !response.user) {
+        throw new Error('Login response did not include a token and user profile')
+      }
+
+      localStorage.setItem('authToken', response.token)
+      localStorage.setItem('token', response.token)
+      localStorage.setItem('user', JSON.stringify(response.user))
+
       router.push('/dashboard')
-    } catch (err) {
-      setError('Login failed')
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || 'Login failed')
       setLoading(false)
     }
   }
@@ -45,13 +51,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-xl p-8">
           <div className="flex items-center gap-3 mb-2">
-            
-            <Image
-             src="/logo.png"
-             alt="Electracore Logo"
-             width={32}
-              height={32}
-             />
+            <Image src="/logo.png" alt="Electracore Logo" width={32} height={32} />
             <h1 className="text-3xl font-bold text-foreground">Electracore</h1>
           </div>
           <p className="text-muted-foreground mb-8">Smart Transformer Monitoring System</p>
@@ -64,9 +64,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">Email</label>
               <input
                 type="email"
                 value={email}
@@ -78,17 +76,26 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                disabled={loading}
-              />
+              <label className="block text-sm font-medium text-foreground mb-2">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Password"
+                  className="w-full px-4 py-3 pr-12 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
 
             <button
@@ -99,31 +106,6 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          <div className="my-6 text-center text-sm text-muted-foreground">
-            Or use demo credentials
-          </div>
-
-          <div className="space-y-2">
-            <button
-              onClick={() => {
-                setEmail('admin@test.com')
-                setPassword('demo123')
-              }}
-              className="w-full py-2 bg-background border border-border rounded-lg text-foreground hover:bg-[#252536] text-sm"
-            >
-              Demo Admin
-            </button>
-            <button
-              onClick={() => {
-                setEmail('user@test.com')
-                setPassword('demo123')
-              }}
-              className="w-full py-2 bg-background border border-border rounded-lg text-foreground hover:bg-[#252536] text-sm"
-            >
-              Demo User
-            </button>
-          </div>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Don&apos;t have an account?{' '}

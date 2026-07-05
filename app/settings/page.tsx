@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
+import authService from '../services/authService'
 
 // SettingsPage component that checks for authentication and displays a form for managing user account settings such as name and email
 export default function SettingsPage() {
@@ -12,6 +13,7 @@ export default function SettingsPage() {
     name: '',
     email: '',
   })
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -39,6 +41,22 @@ export default function SettingsPage() {
     })
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const updatedUser = await authService.updateProfile(formData)
+      const nextUser = { ...user, ...updatedUser }
+      localStorage.setItem('user', JSON.stringify(nextUser))
+      setUser(nextUser)
+      setMessage('Settings saved.')
+    } catch (err) {
+      const nextUser = { ...user, ...formData }
+      localStorage.setItem('user', JSON.stringify(nextUser))
+      setUser(nextUser)
+      setMessage('Settings saved locally. Backend profile update was not accepted.')
+    }
+  }
+
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -64,7 +82,13 @@ export default function SettingsPage() {
             <div className="bg-card border border-border rounded-lg p-6">
               <h2 className="text-lg font-semibold text-foreground mb-6">Account Settings</h2>
 
-              <form className="space-y-6">
+              {message && (
+                <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded text-primary text-sm">
+                  {message}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Full Name

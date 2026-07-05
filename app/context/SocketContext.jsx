@@ -11,6 +11,7 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     const socket = socketService.connect();
+    if (!socket) return;
 
     socket.on('connect', () => {
       setIsConnected(true);
@@ -22,6 +23,7 @@ export const SocketProvider = ({ children }) => {
       console.log('Socket disconnected');
     });
 
+    // Dashboard summaries are pushed when backend aggregate data changes.
     socket.on('dashboard:update', (data) => {
       setRealtimeData((prev) => ({
         ...prev,
@@ -29,6 +31,7 @@ export const SocketProvider = ({ children }) => {
       }));
     });
 
+    // Transformer updates carry the latest hardware-backed state for one transformer.
     socket.on('transformer:update', (data) => {
       setRealtimeData((prev) => ({
         ...prev,

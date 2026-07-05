@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import transformerService from '../services/transformerService';
+import { unwrapData, unwrapList } from '../services/response';
 
 // Custom hooks for fetching transformer data and details using React Query
 export const useTransformers = (filters = {}) => {
@@ -14,7 +15,7 @@ export const useTransformers = (filters = {}) => {
   );
 
   return {
-    transformers: data?.data || [],
+    transformers: unwrapList(data),
     loading: isLoading,
     error,
     refetch,
@@ -35,7 +36,7 @@ export const useTransformerById = (transformerId) => {
   );
 
   return {
-    transformer: data?.data || null,
+    transformer: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -56,7 +57,7 @@ export const useTransformerHealth = (transformerId) => {
   );
 
   return {
-    health: data?.data || null,
+    health: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -76,7 +77,7 @@ export const useTransformerAnalytics = (transformerId, dateRange = {}) => {
   );
 
   return {
-    analytics: data?.data || null,
+    analytics: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -97,7 +98,7 @@ export const useTransformerSensors = (transformerId) => {
   );
 
   return {
-    sensors: data?.data || [],
+    sensors: unwrapList(data),
     loading: isLoading,
     error,
     refetch,

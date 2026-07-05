@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import deviceService from '../services/deviceService';
+import { unwrapData, unwrapList } from '../services/response';
 
 // Custom hooks for fetching device data and status using React Query
 export const useDevices = (filters = {}) => {
@@ -14,7 +15,7 @@ export const useDevices = (filters = {}) => {
   );
 
   return {
-    devices: data?.data || [],
+    devices: unwrapList(data),
     loading: isLoading,
     error,
     refetch,
@@ -35,7 +36,7 @@ export const useDeviceById = (deviceId) => {
   );
 
   return {
-    device: data?.data || null,
+    device: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -56,7 +57,7 @@ export const useDeviceStatus = (deviceId) => {
   );
 
   return {
-    status: data?.data || null,
+    status: unwrapData(data, null),
     loading: isLoading,
     error,
     refetch,
@@ -76,7 +77,7 @@ export const useDeviceLogs = (deviceId, limit = 100) => {
   );
 
   return {
-    logs: data?.data || [],
+    logs: unwrapList(data),
     loading: isLoading,
     error,
     refetch,

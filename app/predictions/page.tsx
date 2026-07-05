@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
+import { usePredictions } from '../hooks/usePredictions'
 
 // Sample ML predictions data
 const SAMPLE_PREDICTIONS = [
@@ -118,6 +119,7 @@ export default function PredictionsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [sortBy, setSortBy] = useState('health')
+  const { predictions, loading, error, refetch } = usePredictions()
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -142,10 +144,11 @@ export default function PredictionsPage() {
   }
 
   // Sort predictions based on selected criteria
-  const sortedPredictions = [...SAMPLE_PREDICTIONS].sort((a, b) => {
-    if (sortBy === 'health') return b.healthScore - a.healthScore
-    if (sortBy === 'risk') return b.failureProbability - a.failureProbability
-    return a.device.localeCompare(b.device)
+  const displayedPredictions = predictions.length > 0 ? predictions : SAMPLE_PREDICTIONS
+  const sortedPredictions = [...displayedPredictions].sort((a: any, b: any) => {
+    if (sortBy === 'health') return (b.healthScore || 0) - (a.healthScore || 0)
+    if (sortBy === 'risk') return (b.failureProbability || 0) - (a.failureProbability || 0)
+    return String(a.device || a.id || '').localeCompare(String(b.device || b.id || ''))
   })
 
   return (
@@ -154,37 +157,52 @@ export default function PredictionsPage() {
 
       <main className="lg:ml-64">
         <header className="bg-card border-b border-border pt-4 lg:pt-0">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-bold text-foreground">AI Predictions</h1>
-            <p className="text-muted-foreground text-sm">Machine learning-based health forecasting</p>
+          <div className="px-6 py-4 flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">AI Predictions</h1>
+              <p className="text-muted-foreground text-sm">Machine learning-based health forecasting</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded text-sm font-medium"
+            >
+              Refresh
+            </button>
           </div>
         </header>
 
         <div className="px-6 py-8">
+          {Boolean(error) && (
+            <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
+              {(error as any)?.response?.data?.message || (error as Error)?.message || 'Unable to load predictions'}
+            </div>
+          )}
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-muted-foreground text-xs mb-1">Avg Health Score</p>
               <p className="text-2xl font-bold text-foreground">
-                {Math.round(SAMPLE_PREDICTIONS.reduce((sum, p) => sum + p.healthScore, 0) / SAMPLE_PREDICTIONS.length)}%
+                {Math.round(displayedPredictions.reduce((sum: number, p: any) => sum + (p.healthScore || 0), 0) / displayedPredictions.length)}%
               </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-muted-foreground text-xs mb-1">High Risk Devices</p>
               <p className="text-2xl font-bold text-destructive">
-                {SAMPLE_PREDICTIONS.filter(p => p.failureProbability > 15).length}
+                {displayedPredictions.filter((p: any) => (p.failureProbability || 0) > 15).length}
               </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-muted-foreground text-xs mb-1">Requiring Action</p>
               <p className="text-2xl font-bold text-primary">
-                {SAMPLE_PREDICTIONS.filter(p => p.trend === 'declining').length}
+                {displayedPredictions.filter((p: any) => p.trend === 'declining').length}
               </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-muted-foreground text-xs mb-1">Total Devices</p>
               <p className="text-2xl font-bold text-foreground">
-                {SAMPLE_PREDICTIONS.length}
+                {displayedPredictions.length}
               </p>
             </div>
           </div>
@@ -225,7 +243,9 @@ export default function PredictionsPage() {
 
           {/* Predictions List */}
           <div className="space-y-4">
-            {sortedPredictions.map((pred) => (
+            {loading ? (
+              <div className="bg-card border border-border rounded-lg p-6 text-muted-foreground">Loading predictions...</div>
+            ) : sortedPredictions.map((pred: any) => (
               <div key={pred.id} className="bg-card border border-border rounded-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left Column */}
@@ -293,7 +313,7 @@ export default function PredictionsPage() {
                     <div>
                       <p className="text-xs text-muted-foreground mb-2">Recommendations</p>
                       <ul className="space-y-1">
-                        {pred.recommendations.map((rec, idx) => (
+                        {(pred.recommendations || []).map((rec: any, idx: number) => (
                           <li key={idx} className="text-sm text-foreground flex items-start gap-2">
                             <span className="text-primary mt-1">•</span>
                             <span>{rec}</span>
