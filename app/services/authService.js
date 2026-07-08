@@ -13,6 +13,44 @@ const authService = {
     return normalizeAuthPayload(response.data);
   },
 
+  forgotPassword: async (email) => {
+    const response = await apiClient.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  getGoogleSignupUrl: async () => {
+    const response = await apiClient.get('/auth/google');
+
+    const authUrl = response.data?.data?.authUrl || response.data?.authUrl;
+    if (!authUrl) {
+      throw new Error('Backend did not return a Google auth URL')
+    }
+
+    const backendOrigin =
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') ||
+      process.env.REACT_APP_API_URL?.replace(/\/api\/?$/, '') ||
+      process.env.REACT_APP_SOCKET_URL ||
+      'https://electracore-backend-production.up.railway.app';
+
+    try {
+      const url = new URL(authUrl)
+      const normalizedBackendOrigin = String(backendOrigin).replace(/\/$/, '')
+      const backendUrl = new URL(normalizedBackendOrigin)
+
+      if (url.hostname === 'localhost' || url.origin !== backendUrl.origin) {
+        url.protocol = backendUrl.protocol
+        url.host = backendUrl.host
+        return url.toString()
+      }
+    } catch {
+      // If the authUrl is not absolute, use backend origin as base.
+      return `${backendOrigin.replace(/\/$/, '')}/${authUrl.replace(/^\//, '')}`
+    }
+
+    return authUrl
+  },
+
   logout: () => {
     clearStoredAuth();
   },

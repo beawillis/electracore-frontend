@@ -15,7 +15,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [role, setRole] = useState('viewer')
+  const [role, setRole] = useState('operator')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -62,6 +62,15 @@ export default function RegisterPage() {
       const alreadyExists = message.toLowerCase().includes('exists') || message.toLowerCase().includes('already')
       setError(alreadyExists ? 'That email is already registered. Please sign in instead.' : message)
       setLoading(false)
+    }
+  }
+
+  const handleGoogleSignup = async () => {
+    try {
+      const googleUrl = await authService.getGoogleSignupUrl()
+      window.location.assign(googleUrl)
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || 'Unable to continue with Google')
     }
   }
 
@@ -165,9 +174,8 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 bg-[#252536] border-2 border-[#3d3d50] rounded-lg text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 disabled={loading}
               >
-                <option value="viewer">Viewer</option>
                 <option value="operator">Operator</option>
-                <option value="technician">Technician</option>
+                <option value="engineer">Engineer</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
@@ -180,6 +188,20 @@ export default function RegisterPage() {
               {loading ? 'Creating account...' : 'Sign Up'}
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignup}
+            className="w-full py-3 bg-background border border-border hover:bg-background/80 text-foreground font-semibold rounded-lg transition"
+          >
+            Continue with Google
+          </button>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Already have an account?{' '}

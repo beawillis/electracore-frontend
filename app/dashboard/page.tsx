@@ -6,17 +6,31 @@ import { useQuery } from '@tanstack/react-query'
 import { Navbar } from '../components/Navbar'
 import dashboardService from '../services/dashboardService'
 import { unwrapData } from '../services/response'
+import { useDevices } from '../hooks/useDevices'
+import { useTransformers } from '../hooks/useTransformers'
 
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const [selectedTransformerId, setSelectedTransformerId] = useState('')
+  const [selectedDeviceId, setSelectedDeviceId] = useState('')
+  const { transformers } = useTransformers()
+  const { devices } = useDevices(selectedTransformerId ? { transformerId: selectedTransformerId } : {})
+  const role = String(user?.role || '').toLowerCase()
+  const requiresSpecificAsset = role === 'operator' || role === 'engineer'
+  const statsFilters = requiresSpecificAsset
+    ? {
+        transformerId: selectedTransformerId || undefined,
+        deviceId: selectedDeviceId || undefined,
+      }
+    : {}
   const {
     data: statsPayload,
     error,
   } = useQuery({
-    queryKey: ['dashboard', 'stats'],
-    queryFn: dashboardService.getStats,
-    enabled: !!user,
+    queryKey: ['dashboard', 'stats', statsFilters],
+    queryFn: () => dashboardService.getStats(statsFilters),
+    enabled: !!user && (!requiresSpecificAsset || Boolean(selectedTransformerId || selectedDeviceId)),
     staleTime: 5000,
     refetchInterval: 30000,
   })
@@ -41,6 +55,39 @@ export default function DashboardPage() {
       setUser(JSON.parse(userData))
     }
   }, [router])
+
+  useEffect(() => {
+    if (!user) return
+
+    const storedTransformerId = localStorage.getItem('monitorTransformerId') || ''
+    const storedDeviceId = localStorage.getItem('monitorDeviceId') || ''
+    if (storedTransformerId) setSelectedTransformerId(storedTransformerId)
+    if (storedDeviceId) setSelectedDeviceId(storedDeviceId)
+  }, [user])
+
+  useEffect(() => {
+    if (!requiresSpecificAsset || selectedTransformerId || transformers.length === 0) return
+    const firstTransformer = transformers[0]
+    setSelectedTransformerId(String(firstTransformer.transformerId || firstTransformer.id || firstTransformer._id || ''))
+  }, [requiresSpecificAsset, selectedTransformerId, transformers])
+
+  useEffect(() => {
+    if (!requiresSpecificAsset || selectedDeviceId || devices.length === 0) return
+    const firstDevice = devices[0]
+    setSelectedDeviceId(String(firstDevice.deviceId || firstDevice.id || firstDevice._id || ''))
+  }, [devices, requiresSpecificAsset, selectedDeviceId])
+
+  const handleTransformerSelection = (value: string) => {
+    setSelectedTransformerId(value)
+    setSelectedDeviceId('')
+    localStorage.setItem('monitorTransformerId', value)
+    localStorage.removeItem('monitorDeviceId')
+  }
+
+  const handleDeviceSelection = (value: string) => {
+    setSelectedDeviceId(value)
+    localStorage.setItem('monitorDeviceId', value)
+  }
 
   if (!user) {
     return (
@@ -69,6 +116,62 @@ export default function DashboardPage() {
           {Boolean(error) && (
             <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
               {String((error as any)?.response?.data?.message || (error as Error)?.message || 'Unable to load dashboard stats')}
+            </div>
+          )}
+
+          <div className="mb-8 bg-card border border-border rounded-lg p-5">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <h2 className="font-semibold text-foreground">Monitoring Scope</h2>
+                <p className="text-sm text-muted-foreground">
+                  {role === 'admin'
+                    ? 'Admin access is monitoring all registered transformers and devices.'
+                    : 'Select the transformer and device you want to monitor right now.'}
+                </p>
+              </div>
+
+              {requiresSpecificAsset ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[520px]">
+                  <select
+                    value={selectedTransformerId}
+                    onChange={(e) => handleTransformerSelection(e.target.value)}
+                    className="px-3 py-2 bg-[#252536] border border-[#3d3d50] rounded text-foreground focus:outline-none focus:border-primary"
+                  >
+                    <option value="">Select transformer</option>
+                    {transformers.map((transformer: any) => {
+                      const id = String(transformer.transformerId || transformer.id || transformer._id || '')
+                      return (
+                        <option key={id} value={id}>
+                          {transformer.name || id}
+                        </option>
+                      )
+                    })}
+                  </select>
+                  <select
+                    value={selectedDeviceId}
+                    onChange={(e) => handleDeviceSelection(e.target.value)}
+                    className="px-3 py-2 bg-[#252536] border border-[#3d3d50] rounded text-foreground focus:outline-none focus:border-primary"
+                  >
+                    <option value="">Select device</option>
+                    {devices.map((device: any) => {
+                      const id = String(device.deviceId || device.id || device._id || '')
+                      return (
+                        <option key={id} value={id}>
+                          {device.name || id}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+              ) : (
+                <div className="text-sm text-primary font-semibold">All devices and transformers</div>
+              )}
+            </div>
+          </div>
+
+          {requiresSpecificAsset && !selectedTransformerId && !selectedDeviceId && (
+            <div className="mb-6 p-3 bg-primary/10 border border-primary/20 rounded text-primary text-sm">
+              Choose a transformer or device to load scoped monitoring data.
             </div>
           )}
 

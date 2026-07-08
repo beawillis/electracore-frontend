@@ -11,6 +11,16 @@ const transformerService = {
     return response.data;
   },
 
+  registerTransformer: async (transformerData) => {
+    const response = await apiClient.post('/transformers/register', transformerData);
+    return response.data;
+  },
+
+  createTransformer: async (transformerData) => {
+    const response = await apiClient.post('/transformers', transformerData);
+    return response.data;
+  },
+
   getTransformerHealth: async (transformerId) => {
     const response = await apiClient.get(`/transformers/${transformerId}/health`);
     return response.data;

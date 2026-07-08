@@ -46,6 +46,15 @@ export default function LoginPage() {
     }
   }
 
+  const handleGoogleSignup = async () => {
+    try {
+      const googleUrl = await authService.getGoogleSignupUrl()
+      window.location.assign(googleUrl)
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || 'Unable to continue with Google')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -98,6 +107,12 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-sm text-primary hover:text-primary/80 font-semibold">
+                Forgot password?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -106,6 +121,20 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignup}
+            className="w-full py-3 bg-background border border-border hover:bg-background/80 text-foreground font-semibold rounded-lg transition"
+          >
+            Continue with Google
+          </button>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
             Don&apos;t have an account?{' '}

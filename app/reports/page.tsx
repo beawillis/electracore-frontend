@@ -121,12 +121,63 @@ const formatDate = (date: Date) => {
   }).format(date)
 }
 
+const labelFromKey = (key: string) => key.replace(/([A-Z])/g, ' $1').trim()
+
+const pdfSafe = (value: string) =>
+  value.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/[^\x20-\x7E]/g, '')
+
+const buildReportPdf = (report: any) => {
+  const lines = [
+    report.title,
+    report.description,
+    `Category: ${report.category}`,
+    `Period: ${report.period}`,
+    `Generated: ${formatDate(report.generatedDate)}`,
+    `Format: ${report.format}`,
+    '',
+    'Metrics',
+    ...Object.entries(report.stats).map(([key, value]) => `${labelFromKey(key)}: ${value}`),
+  ]
+
+  const textCommands = lines
+    .slice(0, 34)
+    .map((line, index) => `BT /F1 12 Tf 50 ${760 - index * 20} Td (${pdfSafe(String(line))}) Tj ET`)
+    .join('\n')
+  const content = `${textCommands}\n`
+  const objects = [
+    '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+    '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj',
+    '4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj',
+    `5 0 obj << /Length ${content.length} >> stream\n${content}endstream endobj`,
+  ]
+  let pdf = '%PDF-1.4\n'
+  const offsets = [0]
+  objects.forEach((object) => {
+    offsets.push(pdf.length)
+    pdf += `${object}\n`
+  })
+  const xrefStart = pdf.length
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`
+  })
+  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`
+
+  return new Blob([pdf], { type: 'application/pdf' })
+}
+
+const getReportShareText = (report: any) =>
+  `${report.title}\n${report.description}\nPeriod: ${report.period}\nGenerated: ${formatDate(report.generatedDate)}`
+
 // Utility to get color based on category
 export default function ReportsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [message, setMessage] = useState('')
+  const [selectedReport, setSelectedReport] = useState<any>(null)
+  const [shareReport, setShareReport] = useState<any>(null)
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -155,8 +206,34 @@ export default function ReportsPage() {
     ? SAMPLE_REPORTS 
     : SAMPLE_REPORTS.filter(r => r.category === selectedCategory)
 
-  const handleReportAction = (action: string, title?: string) => {
-    setMessage(`${action}${title ? `: ${title}` : ''}`)
+  const handleDownload = (report: any) => {
+    const blob = buildReportPdf(report)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${report.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+    setMessage(`Downloaded PDF: ${report.title}`)
+  }
+
+  const handleNativeShare = async (report: any) => {
+    const shareData = {
+      title: report.title,
+      text: getReportShareText(report),
+      url: window.location.href,
+    }
+
+    if (navigator.share) {
+      await navigator.share(shareData)
+      setMessage(`Shared: ${report.title}`)
+      return
+    }
+
+    await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`)
+    setMessage('Report summary copied to clipboard')
   }
 
   return (
@@ -271,25 +348,58 @@ export default function ReportsPage() {
                     <div className="flex flex-col gap-2">
                       <button
                         type="button"
-                        onClick={() => handleReportAction('Download requested', report.title)}
+                        onClick={() => handleDownload(report)}
                         className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium"
                       >
                         Download
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleReportAction('Viewing details', report.title)}
+                        onClick={() => setSelectedReport(report)}
                         className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
                       >
                         View Details
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleReportAction('Share requested', report.title)}
+                        onClick={() => setShareReport(shareReport?.id === report.id ? null : report)}
                         className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
                       >
                         Share
                       </button>
+                      {shareReport?.id === report.id && (
+                        <div className="bg-background border border-border rounded p-3 space-y-2">
+                          <button
+                            type="button"
+                            onClick={() => handleNativeShare(report)}
+                            className="w-full text-left text-sm text-foreground hover:text-primary"
+                          >
+                            Share with device options
+                          </button>
+                          <a
+                            href={`https://wa.me/?text=${encodeURIComponent(getReportShareText(report))}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-sm text-foreground hover:text-primary"
+                          >
+                            WhatsApp
+                          </a>
+                          <a
+                            href={`sms:?&body=${encodeURIComponent(getReportShareText(report))}`}
+                            className="block text-sm text-foreground hover:text-primary"
+                          >
+                            Message
+                          </a>
+                          <a
+                            href={`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(report.title)}&body=${encodeURIComponent(getReportShareText(report))}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block text-sm text-foreground hover:text-primary"
+                          >
+                            Gmail
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -309,7 +419,7 @@ export default function ReportsPage() {
             </p>
             <button
               type="button"
-              onClick={() => handleReportAction('New custom report flow opened')}
+              onClick={() => setMessage('Custom report generation is ready for backend filters')}
               className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium"
             >
               New Report
@@ -317,6 +427,50 @@ export default function ReportsPage() {
           </div>
         </div>
       </main>
+
+      {selectedReport && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-card border border-border rounded-lg p-6">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-foreground">{selectedReport.title}</h2>
+                <p className="text-sm text-muted-foreground">{selectedReport.description}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedReport(null)}
+                className="px-3 py-1 bg-background border border-border rounded text-sm text-foreground"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div className="bg-background rounded p-3">
+                <p className="text-xs text-muted-foreground">Category</p>
+                <p className="font-semibold text-foreground">{selectedReport.category}</p>
+              </div>
+              <div className="bg-background rounded p-3">
+                <p className="text-xs text-muted-foreground">Period</p>
+                <p className="font-semibold text-foreground">{selectedReport.period}</p>
+              </div>
+              <div className="bg-background rounded p-3">
+                <p className="text-xs text-muted-foreground">Generated</p>
+                <p className="font-semibold text-foreground">{formatDate(selectedReport.generatedDate)}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {Object.entries(selectedReport.stats).map(([key, value]) => (
+                <div key={key} className="bg-background rounded p-3">
+                  <p className="text-xs text-muted-foreground mb-1 capitalize">{labelFromKey(key)}</p>
+                  <p className="text-sm font-semibold text-foreground">{String(value)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

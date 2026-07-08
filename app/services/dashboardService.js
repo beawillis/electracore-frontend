@@ -1,8 +1,8 @@
 import apiClient from './api';
 
 const dashboardService = {
-  getStats: async () => {
-    const response = await apiClient.get('/dashboard/stats');
+  getStats: async (filters = {}) => {
+    const response = await apiClient.get('/dashboard/stats', { params: filters });
     return response.data;
   },
 
