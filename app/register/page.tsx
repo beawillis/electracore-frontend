@@ -46,7 +46,7 @@ export default function RegisterPage() {
         return
       }
 
-      const response = await authService.register(normalizedEmail, password, trimmedName, role)
+      const response = await authService.register(trimmedName, normalizedEmail, password, role)
 
       if (!response.token || !response.user) {
         throw new Error('Registration response did not include a token and user profile')

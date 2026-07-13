@@ -30,6 +30,8 @@ export default function ForgotPasswordPage() {
       setMessage('If that email exists, password reset instructions have been sent.')
       setEmail('')
     } catch (err: any) {
+      // Log full server response for debugging validation errors
+      console.error('Forgot password error:', err?.response?.data || err)
       setError(err?.response?.data?.message || err?.message || 'Unable to request password reset')
     } finally {
       setLoading(false)

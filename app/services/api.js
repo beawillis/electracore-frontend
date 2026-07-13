@@ -4,12 +4,16 @@ export const API_ROOT_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   process.env.NEXT_PUBLIC_API_ROOT_URL ||
   process.env.REACT_APP_SOCKET_URL ||
-  'https://electracore-backend-production.up.railway.app';
+  'https://electracore-backend-13oa.onrender.com';
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.REACT_APP_API_URL ||
   `${API_ROOT_URL.replace(/\/$/, '')}/api`;
+
+if (typeof window !== 'undefined') {
+  console.log('Resolved API_BASE_URL:', API_BASE_URL);
+}
 
 export const getStoredToken = () => {
   if (typeof window === 'undefined') return null;
@@ -37,6 +41,20 @@ apiClient.interceptors.request.use((config) => {
   const token = getStoredToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      // Log outgoing requests for debugging payload/URL issues
+      console.debug('API Request:', {
+        method: config.method,
+        baseURL: config.baseURL,
+        url: config.url,
+        data: config.data,
+        params: config.params,
+      });
+    } catch (e) {
+      // ignore logging errors
+    }
   }
   return config;
 });

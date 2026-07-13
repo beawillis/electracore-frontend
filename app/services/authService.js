@@ -8,13 +8,22 @@ const authService = {
     return normalizeAuthPayload(response.data);
   },
 
-  register: async (email, password, name, role = 'viewer') => {
-    const response = await apiClient.post('/auth/register', { email, password, name, role });
+  register: async (name, email, password, role = 'viewer') => {
+    // Send object payload matching backend: { name, email, password, role }
+    const payload = { name, email, password, role };
+    if (typeof window !== 'undefined') {
+      console.debug('Register payload:', payload);
+    }
+    const response = await apiClient.post('/auth/register', payload);
     return normalizeAuthPayload(response.data);
   },
 
   forgotPassword: async (email) => {
-    const response = await apiClient.post('/auth/forgot-password', { email });
+    const payload = { email };
+    if (typeof window !== 'undefined') {
+      console.debug('Forgot password payload:', payload);
+    }
+    const response = await apiClient.post('/auth/forgot-password', payload);
     return response.data;
   },
 
