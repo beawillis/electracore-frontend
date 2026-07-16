@@ -8,6 +8,8 @@ import dashboardService from '../services/dashboardService'
 import { unwrapData } from '../services/response'
 import { useDevices } from '../hooks/useDevices'
 import { useTransformers } from '../hooks/useTransformers'
+import { useLiveReadings } from '../hooks/useSensors'
+import { formatLiveValue } from '../utils/liveTelemetry'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -16,6 +18,8 @@ export default function DashboardPage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState('')
   const { transformers } = useTransformers()
   const { devices } = useDevices(selectedTransformerId ? { transformerId: selectedTransformerId } : {})
+  const activeTransformerId = selectedTransformerId || transformers[0]?.id || transformers[0]?._id || transformers[0]?.transformerId || ''
+  const { readings: liveReadings, loading: liveLoading } = useLiveReadings(activeTransformerId)
   const role = String(user?.role || '').toLowerCase()
   const requiresSpecificAsset = role === 'operator' || role === 'engineer'
   const statsFilters = requiresSpecificAsset
@@ -68,7 +72,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!requiresSpecificAsset || selectedTransformerId || transformers.length === 0) return
     const firstTransformer = transformers[0]
-    setSelectedTransformerId(String(firstTransformer.transformerId || firstTransformer.id || firstTransformer._id || ''))
+    setSelectedTransformerId(String(firstTransformer.id || firstTransformer._id || firstTransformer.transformerId || ''))
   }, [requiresSpecificAsset, selectedTransformerId, transformers])
 
   useEffect(() => {
@@ -131,7 +135,7 @@ export default function DashboardPage() {
               </div>
 
               {requiresSpecificAsset ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-[520px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:min-w-lg">
                   <select
                     value={selectedTransformerId}
                     onChange={(e) => handleTransformerSelection(e.target.value)}
@@ -139,7 +143,7 @@ export default function DashboardPage() {
                   >
                     <option value="">Select transformer</option>
                     {transformers.map((transformer: any) => {
-                      const id = String(transformer.transformerId || transformer.id || transformer._id || '')
+                      const id = String(transformer.id || transformer._id || transformer.transformerId || '')
                       return (
                         <option key={id} value={id}>
                           {transformer.name || id}
@@ -192,6 +196,41 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-sm mb-2">Critical Alerts</p>
               <p className="text-3xl font-bold text-foreground">{displayStat(stats?.criticalAlerts, stats?.alerts)}</p>
             </div>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-6 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Live hardware telemetry</h2>
+                <p className="text-sm text-muted-foreground">Showing the latest values forwarded from the backend for the selected transformer.</p>
+              </div>
+              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{liveLoading ? 'Refreshing…' : `${liveReadings.length} live signal${liveReadings.length === 1 ? '' : 's'}`}</span>
+              </div>
+            </div>
+
+            {activeTransformerId ? (
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {liveReadings.length > 0 ? (
+                  liveReadings.slice(0, 4).map((reading: any, index: number) => (
+                    <div key={reading.id || reading._id || `${reading.sensorType}-${index}`} className="bg-background border border-border rounded-lg p-4">
+                      <p className="text-sm text-muted-foreground">{reading.sensorType || reading.type || 'Sensor'}</p>
+                      <p className="text-2xl font-bold text-foreground mt-2">{formatLiveValue(reading)}</p>
+                      <p className="text-xs text-muted-foreground mt-3">{reading.timestamp ? new Date(reading.timestamp).toLocaleString() : 'Awaiting timestamp'}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="md:col-span-2 xl:col-span-4 bg-background border border-border rounded-lg p-4 text-sm text-muted-foreground">
+                    No live telemetry has arrived from the backend for this transformer yet.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-6 p-4 bg-background border border-border rounded-lg text-sm text-muted-foreground">
+                Select a transformer to inspect the latest hardware readings.
+              </div>
+            )}
           </div>
 
           <div className="bg-card border border-border rounded-lg p-8 text-center">

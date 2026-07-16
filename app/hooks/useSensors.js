@@ -1,9 +1,13 @@
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import sensorService from '../services/sensorService';
 import { unwrapData, unwrapList } from '../services/response';
+import socketService from '../services/socketService';
+import { normalizeSensorReadings } from '../utils/liveTelemetry';
 
 // Custom hooks for fetching sensor data and details using React Query
 export const useLiveReadings = (transformerId) => {
+  const [liveSocketReadings, setLiveSocketReadings] = useState([]);
   const { data, isLoading, error, refetch } = useQuery(
     ['liveReadings', transformerId],
     () => sensorService.getLiveReadings(transformerId),
@@ -15,8 +19,109 @@ export const useLiveReadings = (transformerId) => {
     }
   );
 
+  useEffect(() => {
+    if (!transformerId) {
+      setLiveSocketReadings([]);
+      return;
+    }
+
+    socketService.subscribeToTransformer(transformerId);
+
+    const applyPayload = (payload) => {
+      if (!payload) return;
+      const normalized = normalizeSensorReadings(payload, transformerId);
+      if (!normalized.length) return;
+
+      setLiveSocketReadings((current) => {
+        const next = [...current];
+        normalized.forEach((reading) => {
+          const index = next.findIndex((item) => (item.sensorType || item.type) === (reading.sensorType || reading.type));
+          if (index >= 0) {
+            next[index] = { ...next[index], ...reading };
+          } else {
+            next.push(reading);
+          }
+        });
+        return next;
+      });
+    };
+
+    const handleSocketPayload = (payload) => {
+      if (!payload) return;
+      const payloadTransformerId = payload.transformerId || payload.transformer || payload.id || '';
+      if (payloadTransformerId && String(payloadTransformerId) !== String(transformerId)) return;
+      const extractedPayload = payload.readings || payload.sensorReadings || payload.data || payload.sensors || payload.telemetry || payload;
+      if (extractedPayload && typeof extractedPayload === 'object' && 'readings' in extractedPayload) {
+        applyPayload(extractedPayload.readings);
+        return;
+      }
+      applyPayload(extractedPayload);
+    };
+
+    const handleTransformerPayload = (payload) => {
+      if (!payload) return;
+      const payloadTransformerId = payload.transformerId || payload.transformer || payload.id || '';
+      if (payloadTransformerId && String(payloadTransformerId) !== String(transformerId)) return;
+      const extractedPayload = payload.readings || payload.sensorReadings || payload.data || payload.sensors || payload.telemetry || payload;
+      if (extractedPayload && typeof extractedPayload === 'object' && 'readings' in extractedPayload) {
+        applyPayload(extractedPayload.readings);
+        return;
+      }
+      applyPayload(extractedPayload);
+    };
+
+    const handleGenericUpdate = (payload) => {
+      if (!payload) return;
+      if (payload?.transformerId && String(payload.transformerId) !== String(transformerId)) return;
+      if (payload?.transformer && String(payload.transformer) !== String(transformerId)) return;
+      if (payload?.data && typeof payload.data === 'object') {
+        applyPayload(payload.data);
+      } else if (payload && typeof payload === 'object') {
+        applyPayload(payload);
+      }
+    };
+
+    socketService.on('sensor_reading', handleSocketPayload);
+    socketService.on('sensor:reading', handleSocketPayload);
+    socketService.on('sensors:update', handleSocketPayload);
+    socketService.on('sensor:update', handleSocketPayload);
+    socketService.on('transformer:update', handleTransformerPayload);
+    socketService.on(`transformer:${transformerId}:update`, handleTransformerPayload);
+    socketService.on('telemetry:update', handleGenericUpdate);
+    socketService.on('live:update', handleGenericUpdate);
+    socketService.on('data:update', handleGenericUpdate);
+
+    return () => {
+      socketService.unsubscribeFromTransformer(transformerId);
+      socketService.off('sensor_reading', handleSocketPayload);
+      socketService.off('sensor:reading', handleSocketPayload);
+      socketService.off('sensors:update', handleSocketPayload);
+      socketService.off('sensor:update', handleSocketPayload);
+      socketService.off('transformer:update', handleTransformerPayload);
+      socketService.off(`transformer:${transformerId}:update`, handleTransformerPayload);
+      socketService.off('telemetry:update', handleGenericUpdate);
+      socketService.off('live:update', handleGenericUpdate);
+      socketService.off('data:update', handleGenericUpdate);
+    };
+  }, [transformerId]);
+
+  const queryReadings = useMemo(() => normalizeSensorReadings(data, transformerId), [data, transformerId]);
+  const mergedReadings = useMemo(() => {
+    if (!liveSocketReadings.length) return queryReadings;
+    const next = [...queryReadings];
+    liveSocketReadings.forEach((reading) => {
+      const index = next.findIndex((item) => (item.sensorType || item.type) === (reading.sensorType || reading.type));
+      if (index >= 0) {
+        next[index] = { ...next[index], ...reading };
+      } else {
+        next.push(reading);
+      }
+    });
+    return next;
+  }, [liveSocketReadings, queryReadings]);
+
   return {
-    readings: unwrapList(data),
+    readings: mergedReadings,
     loading: isLoading,
     error,
     refetch,
@@ -36,7 +141,7 @@ export const useHistoricalReadings = (transformerId, startDate, endDate) => {
   );
 
   return {
-    readings: unwrapList(data),
+    readings: normalizeSensorReadings(data, transformerId),
     loading: isLoading,
     error,
     refetch,

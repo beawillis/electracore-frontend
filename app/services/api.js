@@ -1,15 +1,8 @@
 import axios from 'axios';
+import { getApiBaseUrl, getBackendBaseUrl } from './backendConfig';
 
-export const API_ROOT_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_API_ROOT_URL ||
-  process.env.REACT_APP_SOCKET_URL ||
-  'https://electracore-backend-13oa.onrender.com';
-
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.REACT_APP_API_URL ||
-  `${API_ROOT_URL.replace(/\/$/, '')}/api`;
+export const API_ROOT_URL = getBackendBaseUrl();
+export const API_BASE_URL = getApiBaseUrl();
 
 if (typeof window !== 'undefined') {
   console.log('Resolved API_BASE_URL:', API_BASE_URL);

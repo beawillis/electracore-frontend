@@ -40,7 +40,7 @@ const authService = {
       process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') ||
       process.env.REACT_APP_API_URL?.replace(/\/api\/?$/, '') ||
       process.env.REACT_APP_SOCKET_URL ||
-      'https://electracore-backend-production.up.railway.app';
+      'http://localhost:5000';
 
     try {
       const url = new URL(authUrl)

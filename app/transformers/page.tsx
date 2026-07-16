@@ -38,6 +38,19 @@ export default function TransformersPage() {
     setTransformerForm((current) => ({ ...current, [field]: value }))
   }
 
+  const getRegistrationErrorMessage = (err: any) => {
+    if (err?.response?.status === 401) {
+      return 'Your session has expired or the backend rejected the request. Please sign in again and try once more.'
+    }
+    if (err?.response?.status === 403) {
+      return 'You do not have permission to register transformers on this backend.'
+    }
+    if (err?.response?.status === 404) {
+      return 'The backend registration endpoint is not available right now.'
+    }
+    return err?.response?.data?.message || err?.message || 'Unable to register transformer'
+  }
+
   const handleRegisterTransformer = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage('')
@@ -69,7 +82,7 @@ export default function TransformersPage() {
       setShowRegisterForm(false)
       refetch()
     } catch (err: any) {
-      setFormError(err?.response?.data?.message || err?.message || 'Unable to register transformer')
+      setFormError(getRegistrationErrorMessage(err))
     } finally {
       setSaving(false)
     }
@@ -116,7 +129,7 @@ export default function TransformersPage() {
         <div className="px-6 py-8">
           {message && (
             <div className="mb-6 p-3 bg-primary/10 border border-primary/20 rounded text-primary text-sm">
-              {message}
+              {typeof message === 'string' ? message : JSON.stringify(message)}
             </div>
           )}
 
@@ -135,7 +148,7 @@ export default function TransformersPage() {
 
               {formError && (
                 <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
-                  {formError}
+                  {typeof formError === 'string' ? formError : JSON.stringify(formError)}
                 </div>
               )}
 

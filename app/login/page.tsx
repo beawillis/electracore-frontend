@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Eye, EyeOff } from 'lucide-react'
 import authService from '../services/authService'
+import socketService from '../services/socketService'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -38,6 +39,7 @@ export default function LoginPage() {
       localStorage.setItem('authToken', response.token)
       localStorage.setItem('token', response.token)
       localStorage.setItem('user', JSON.stringify(response.user))
+      socketService.connect()
 
       router.push('/dashboard')
     } catch (err: any) {

@@ -9,8 +9,17 @@ const sensorService = {
   },
 
   getLiveReadings: async (transformerId) => {
-    const response = await apiClient.get(`/sensors/transformer/${transformerId}/live`);
-    return response.data;
+    try {
+      const response = await apiClient.get(`/sensors/transformer/${transformerId}/live`);
+      return response.data;
+    } catch (error) {
+      // If backend doesn't provide a live endpoint or transformer has no live data,
+      // return an empty array instead of letting a 404 bubble up to the UI.
+      if (error?.response?.status === 404) {
+        return [];
+      }
+      throw error;
+    }
   },
 
   getHistoricalReadings: async (transformerId, startDate, endDate) => {

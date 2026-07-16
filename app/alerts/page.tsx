@@ -7,63 +7,6 @@ import { Navbar } from '../components/Navbar'
 import { useAlerts } from '../hooks/useAlerts'
 import alertService from '../services/alertService'
 
-// Sample alert data
-const SAMPLE_ALERTS = [
-  {
-    id: 1,
-    title: 'High Temperature Alert',
-    message: 'Transformer T-001 temperature exceeding 65°C',
-    severity: 'critical',
-    status: 'active',
-    device: 'T-001',
-    createdAt: new Date(Date.now() - 5 * 60000),
-  },
-  {
-    id: 2,
-    title: 'Unusual Vibration Detected',
-    message: 'Abnormal vibration patterns on Device D-045',
-    severity: 'high',
-    status: 'active',
-    device: 'D-045',
-    createdAt: new Date(Date.now() - 15 * 60000),
-  },
-  {
-    id: 3,
-    title: 'Low Battery Level',
-    message: 'Sensor battery level dropped to 15%',
-    severity: 'medium',
-    status: 'active',
-    device: 'S-023',
-    createdAt: new Date(Date.now() - 2 * 60 * 60000),
-  },
-  {
-    id: 4,
-    title: 'Voltage Spike',
-    message: 'Voltage spike detected on circuit B',
-    severity: 'high',
-    status: 'resolved',
-    device: 'T-002',
-    createdAt: new Date(Date.now() - 4 * 60 * 60000),
-  },
-  {
-    id: 5,
-    title: 'Device Offline',
-    message: 'Device D-032 has not reported data for 30 minutes',
-    severity: 'medium',
-    status: 'active',
-    device: 'D-032',
-    createdAt: new Date(Date.now() - 30 * 60000),
-  },
-  {
-    id: 6,
-    title: 'Maintenance Overdue',
-    message: 'Scheduled maintenance for T-005 is overdue',
-    severity: 'low',
-    status: 'active',
-    device: 'T-005',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60000),
-  },
-]
 
 // Utility to get color based on severity
 const getSeverityColor = (severity: string) => {
@@ -103,7 +46,6 @@ export default function AlertsPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [filter, setFilter] = useState('all')
-  const [alerts, setAlerts] = useState(SAMPLE_ALERTS)
   const { alerts: backendAlerts, loading, error, refetch } = useAlerts()
 
   useEffect(() => {
@@ -128,11 +70,9 @@ export default function AlertsPage() {
     )
   }
 
-  // Filter alerts based on selected filter
-  const displayedAlerts = backendAlerts.length > 0 ? backendAlerts : alerts
-  const filteredAlerts = filter === 'active' 
-    ? displayedAlerts.filter((a: any) => a.status === 'active')
-    : displayedAlerts
+  // Filter alerts based on selected filter (use only backend alerts)
+  const displayedAlerts = backendAlerts || []
+  const filteredAlerts = filter === 'active' ? displayedAlerts.filter((a: any) => a.status === 'active') : displayedAlerts
 
   const handleAlertAction = async (alertId: string | number) => {
     try {
@@ -140,16 +80,11 @@ export default function AlertsPage() {
       refetch()
       return
     } catch (err) {
-      console.warn('Backend alert resolve failed, updating local fallback alert only.', err)
+      console.warn('Backend alert resolve failed.', err)
+      // On failure just refetch to keep UI consistent
+      refetch()
+      return
     }
-
-    setAlerts((prev) =>
-      prev.map((alert) =>
-        alert.id === alertId && alert.status === 'active'
-          ? { ...alert, status: 'resolved' }
-          : alert
-      )
-    )
   }
 
   return (
@@ -271,8 +206,8 @@ export default function AlertsPage() {
               ))
             ) : (
               <div className="bg-card border border-border rounded-lg p-12 text-center">
-                <p className="text-muted-foreground mb-2">No alerts found</p>
-                <p className="text-xs text-muted-foreground">Great! Your system is running smoothly.</p>
+                <p className="text-muted-foreground mb-2">No live data — check backend</p>
+                <p className="text-xs text-muted-foreground">Refresh or check your backend connectivity.</p>
               </div>
             )}
           </div>

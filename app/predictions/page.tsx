@@ -5,69 +5,6 @@ import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 import { usePredictions } from '../hooks/usePredictions'
 
-// Sample ML predictions data
-const SAMPLE_PREDICTIONS = [
-  {
-    id: 1,
-    device: 'T-001',
-    name: 'Transformer T-001',
-    type: 'transformer',
-    healthScore: 92,
-    trend: 'stable',
-    failureProbability: 2,
-    estimatedRUL: '4.2 years',
-    recommendations: ['Perform routine maintenance', 'Monitor temperature closely'],
-    lastUpdated: new Date(Date.now() - 2 * 60 * 60000),
-  },
-  {
-    id: 2,
-    device: 'T-002',
-    name: 'Transformer T-002',
-    type: 'transformer',
-    healthScore: 78,
-    trend: 'declining',
-    failureProbability: 8,
-    estimatedRUL: '2.1 years',
-    recommendations: ['Schedule maintenance', 'Increase monitoring frequency'],
-    lastUpdated: new Date(Date.now() - 1 * 60 * 60000),
-  },
-  {
-    id: 3,
-    device: 'D-045',
-    name: 'Device D-045',
-    type: 'device',
-    healthScore: 65,
-    trend: 'declining',
-    failureProbability: 22,
-    estimatedRUL: '0.8 years',
-    recommendations: ['Plan replacement', 'Reduce load', 'Urgent: increase monitoring'],
-    lastUpdated: new Date(Date.now() - 30 * 60000),
-  },
-  {
-    id: 4,
-    device: 'T-005',
-    name: 'Transformer T-005',
-    type: 'transformer',
-    healthScore: 88,
-    trend: 'stable',
-    failureProbability: 3,
-    estimatedRUL: '5.6 years',
-    recommendations: ['Continue normal operations'],
-    lastUpdated: new Date(Date.now() - 3 * 60 * 60000),
-  },
-  {
-    id: 5,
-    device: 'D-032',
-    name: 'Device D-032',
-    type: 'device',
-    healthScore: 71,
-    trend: 'improving',
-    failureProbability: 5,
-    estimatedRUL: '3.2 years',
-    recommendations: ['Monitor performance', 'Complete recent repairs'],
-    lastUpdated: new Date(Date.now() - 45 * 60000),
-  },
-]
 
 const getHealthColor = (score: number) => {
   if (score >= 85) return '#22c55e'
@@ -143,8 +80,8 @@ export default function PredictionsPage() {
     )
   }
 
-  // Sort predictions based on selected criteria
-  const displayedPredictions = predictions.length > 0 ? predictions : SAMPLE_PREDICTIONS
+  // Sort predictions based on selected criteria (use only backend predictions)
+  const displayedPredictions = predictions || []
   const sortedPredictions = [...displayedPredictions].sort((a: any, b: any) => {
     if (sortBy === 'health') return (b.healthScore || 0) - (a.healthScore || 0)
     if (sortBy === 'risk') return (b.failureProbability || 0) - (a.failureProbability || 0)
@@ -245,9 +182,11 @@ export default function PredictionsPage() {
           <div className="space-y-4">
             {loading ? (
               <div className="bg-card border border-border rounded-lg p-6 text-muted-foreground">Loading predictions...</div>
-            ) : sortedPredictions.map((pred: any) => (
-              <div key={pred.id} className="bg-card border border-border rounded-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            ) : sortedPredictions.length > 0 ? (
+              <>
+                {sortedPredictions.map((pred: any) => (
+                  <div key={pred.id} className="bg-card border border-border rounded-lg p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Left Column */}
                   <div>
                     <div className="flex items-start justify-between mb-4">
@@ -324,7 +263,14 @@ export default function PredictionsPage() {
                   </div>
                 </div>
               </div>
-            ))}
+                ))}
+              </>
+            ) : (
+              <div className="bg-card border border-border rounded-lg p-12 text-center">
+                <p className="text-muted-foreground mb-2">No live data — check backend</p>
+                <p className="text-xs text-muted-foreground">Refresh or ensure the predictions endpoint is available.</p>
+              </div>
+            )}
           </div>
 
           {/* Info Box */}

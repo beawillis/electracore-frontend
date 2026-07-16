@@ -3,100 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
+import { useReports } from '../hooks/useReports'
 
-// Sample reports data
-const SAMPLE_REPORTS = [
-  {
-    id: 1,
-    title: 'System Performance Report',
-    description: 'Overall system performance, uptime, and efficiency metrics',
-    category: 'Performance',
-    generatedDate: new Date(Date.now() - 2 * 24 * 60 * 60000),
-    period: 'Last 30 Days',
-    stats: {
-      uptime: 99.8,
-      avgResponseTime: 245,
-      totalAlerts: 12,
-      resolvedAlerts: 10,
-    },
-    format: 'PDF',
-  },
-  {
-    id: 2,
-    title: 'Transformer Health Report',
-    description: 'Individual transformer health assessment and trends',
-    category: 'Health',
-    generatedDate: new Date(Date.now() - 5 * 60 * 60000),
-    period: 'Last 7 Days',
-    stats: {
-      totalTransformers: 5,
-      healthy: 4,
-      warning: 1,
-      critical: 0,
-    },
-    format: 'PDF',
-  },
-  {
-    id: 3,
-    title: 'Alert Summary Report',
-    description: 'Historical alert trends and incident analysis',
-    category: 'Alerts',
-    generatedDate: new Date(Date.now() - 1 * 24 * 60 * 60000),
-    period: 'Last 30 Days',
-    stats: {
-      totalAlerts: 42,
-      critical: 5,
-      high: 12,
-      medium: 15,
-    },
-    format: 'PDF',
-  },
-  {
-    id: 4,
-    title: 'Device Status Report',
-    description: 'IoT devices status, connectivity, and performance',
-    category: 'Devices',
-    generatedDate: new Date(Date.now() - 3 * 60 * 60000),
-    period: 'Current',
-    stats: {
-      totalDevices: 23,
-      online: 22,
-      offline: 1,
-      failureRate: 4.3,
-    },
-    format: 'PDF',
-  },
-  {
-    id: 5,
-    title: 'Predictive Maintenance Report',
-    description: 'AI predictions for maintenance scheduling and recommendations',
-    category: 'Maintenance',
-    generatedDate: new Date(Date.now() - 1 * 60 * 60000),
-    period: 'Next 90 Days',
-    stats: {
-      scheduledMaintenance: 3,
-      estimatedDowntime: 8,
-      costSavings: 45000,
-      riskReduction: 28,
-    },
-    format: 'PDF',
-  },
-  {
-    id: 6,
-    title: 'Sensor Data Analysis',
-    description: 'Temperature, voltage, and current readings analysis',
-    category: 'Sensors',
-    generatedDate: new Date(Date.now() - 12 * 60 * 60000),
-    period: 'Last 24 Hours',
-    stats: {
-      avgTemperature: 45.8,
-      maxTemperature: 62.3,
-      avgVoltage: 480.2,
-      anomalies: 2,
-    },
-    format: 'CSV',
-  },
-]
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
@@ -201,10 +109,9 @@ export default function ReportsPage() {
     )
   }
 
-  const categories = ['all', ...new Set(SAMPLE_REPORTS.map(r => r.category))]
-  const filteredReports = selectedCategory === 'all' 
-    ? SAMPLE_REPORTS 
-    : SAMPLE_REPORTS.filter(r => r.category === selectedCategory)
+  const { reports, count, loading: reportsLoading, error: reportsError, refetch: refetchReports } = useReports()
+  const categories = ['all']
+  const filteredReports = reports || []
 
   const handleDownload = (report: any) => {
     const blob = buildReportPdf(report)
@@ -259,16 +166,12 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-muted-foreground text-xs mb-1">Total Reports</p>
-              <p className="text-3xl font-bold text-foreground">{SAMPLE_REPORTS.length}</p>
+              <p className="text-3xl font-bold text-foreground">0</p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4">
               <p className="text-muted-foreground text-xs mb-1">Generated This Month</p>
               <p className="text-3xl font-bold text-foreground">
-                {SAMPLE_REPORTS.filter(r => {
-                  const now = new Date()
-                  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60000)
-                  return r.generatedDate > monthAgo
-                }).length}
+                0
               </p>
             </div>
             <div className="bg-card border border-border rounded-lg p-4">
@@ -300,7 +203,7 @@ export default function ReportsPage() {
 
           {/* Reports Grid */}
           <div className="space-y-4">
-            {filteredReports.length > 0 ? (
+              {filteredReports.length > 0 ? (
               filteredReports.map((report) => (
                 <div
                   key={report.id}

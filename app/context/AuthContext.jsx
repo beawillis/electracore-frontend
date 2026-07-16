@@ -1,5 +1,6 @@
 import React, { createContext, useState, useCallback, useEffect } from 'react'; // Context for managing authentication state and actions across the app
 import authService from '../services/authService'; // Service for handling API calls related to authentication
+import socketService from '../services/socketService';
 
 export const AuthContext = createContext(); // Create a context for authentication
 
@@ -37,6 +38,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      socketService.connect();
       
       return response;
     } catch (err) {
@@ -64,6 +66,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      socketService.connect();
       
       return response;
     } catch (err) {
@@ -78,6 +81,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function to clear user data and token from localStorage
   const logout = useCallback(() => {
     authService.logout();
+    socketService.disconnect();
     setUser(null);
     setError(null);
   }, []);

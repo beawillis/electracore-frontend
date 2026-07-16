@@ -4,12 +4,14 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 import { useDevices } from '../hooks/useDevices'
+import { useTransformers } from '../hooks/useTransformers'
 import deviceService from '../services/deviceService'
 
 export default function DevicesPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const { devices, loading, error, refetch } = useDevices()
+  const { transformers } = useTransformers()
   const [showRegisterForm, setShowRegisterForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -54,7 +56,8 @@ export default function DevicesPage() {
         name: deviceForm.name.trim(),
         deviceId: deviceForm.deviceId.trim(),
         type: deviceForm.type.trim() || 'monitoring-device',
-        transformerId: deviceForm.transformerId.trim() || undefined,
+        // Backend expects the field name `transformer` (linked transformer id), not `transformerId`.
+        transformer: deviceForm.transformerId.trim() || undefined,
         location: deviceForm.location.trim() || undefined,
       })
       setMessage('Device registered successfully')
@@ -109,7 +112,7 @@ export default function DevicesPage() {
         <div className="px-6 py-8">
           {message && (
             <div className="mb-6 p-3 bg-primary/10 border border-primary/20 rounded text-primary text-sm">
-              {message}
+              {typeof message === 'string' ? message : JSON.stringify(message)}
             </div>
           )}
 
@@ -130,7 +133,7 @@ export default function DevicesPage() {
 
               {formError && (
                 <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded text-destructive text-sm">
-                  {formError}
+                  {typeof formError === 'string' ? formError : JSON.stringify(formError)}
                 </div>
               )}
 
@@ -159,7 +162,7 @@ export default function DevicesPage() {
                 <input
                   value={deviceForm.transformerId}
                   onChange={(e) => handleDeviceChange('transformerId', e.target.value)}
-                  placeholder="Transformer ID"
+                  placeholder="Transformer (ID or code, optional)"
                   className="px-3 py-2 bg-[#252536] border border-[#3d3d50] rounded text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary"
                   disabled={saving}
                 />
@@ -198,7 +201,18 @@ export default function DevicesPage() {
                     </span>
                   </div>
                   <div className="mt-4 space-y-1 text-sm text-muted-foreground">
-                    <p>Transformer: <span className="text-foreground">{device.transformerId || '-'}</span></p>
+                    {(() => {
+                      const transformerObj = device.transformer;
+                      const transformerDisplay =
+                        typeof transformerObj === 'object' && transformerObj !== null
+                          ? transformerObj.name || transformerObj.transformerId || transformerObj._id
+                          : transformerObj;
+                      return (
+                        <p>
+                          Transformer: <span className="text-foreground">{device.transformerId || transformerDisplay || '-'}</span>
+                        </p>
+                      )
+                    })()}
                     <p>Last seen: <span className="text-foreground">{device.lastSeen || device.updatedAt || '-'}</span></p>
                   </div>
                 </div>
