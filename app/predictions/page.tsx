@@ -39,7 +39,10 @@ const getTrendColor = (trend: string) => {
   }
 }
  // Utility to format time difference in a human-readable way
-const formatTime = (date: Date) => {
+const formatTime = (value: string | number | Date | null | undefined) => {
+  const date = value ? new Date(value) : null
+  if (!date || Number.isNaN(date.getTime())) return 'Unknown'
+
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   const minutes = Math.floor(diff / 60000)
@@ -267,8 +270,10 @@ export default function PredictionsPage() {
               </>
             ) : (
               <div className="bg-card border border-border rounded-lg p-12 text-center">
-                <p className="text-muted-foreground mb-2">No live data — check backend</p>
-                <p className="text-xs text-muted-foreground">Refresh or ensure the predictions endpoint is available.</p>
+                <p className="text-muted-foreground mb-2">No predictions are available from the backend.</p>
+                <p className="text-xs text-muted-foreground">
+                  Verify that <span className="font-mono">/api/ml/predict</span> is implemented and your API URL is correct.
+                </p>
               </div>
             )}
           </div>

@@ -25,7 +25,10 @@ const getSeverityColor = (severity: string) => {
 }
 
 // Utility to format time difference
-const formatTime = (date: Date) => {
+const formatTime = (value: string | number | Date | null | undefined) => {
+  const date = value ? new Date(value) : null
+  if (!date || Number.isNaN(date.getTime())) return 'Unknown'
+
   const now = new Date()
   const diff = now.getTime() - date.getTime()
   const minutes = Math.floor(diff / 60000)
@@ -162,9 +165,9 @@ export default function AlertsPage() {
             {loading ? (
               <div className="bg-card border border-border rounded-lg p-6 text-muted-foreground">Loading alerts...</div>
             ) : filteredAlerts.length > 0 ? (
-              filteredAlerts.map((alert: any) => (
+              filteredAlerts.map((alert: any, index: number) => (
                 <div
-                  key={alert.id}
+                  key={alert.id || alert._id || alert.alertId || `${alert.title || 'alert'}-${index}`}
                   className="bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
                   style={{
                     borderLeftWidth: '4px',
@@ -187,7 +190,9 @@ export default function AlertsPage() {
                       </div>
                       <p className="text-sm text-muted-foreground">{alert.message}</p>
                       <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                        <span>Device: <span className="text-foreground font-medium">{alert.device}</span></span>
+                        <span>
+                          Device: <span className="text-foreground font-medium">{typeof alert.device === 'string' ? alert.device : alert.device?.name || alert.device?.deviceId || alert.device?._id || 'Unknown'}</span>
+                        </span>
                         <span>{formatTime(alert.createdAt)}</span>
                         <span className={alert.status === 'active' ? 'text-primary' : 'text-muted-foreground'}>
                           {alert.status === 'active' ? 'Active' : 'Resolved'}
@@ -206,8 +211,10 @@ export default function AlertsPage() {
               ))
             ) : (
               <div className="bg-card border border-border rounded-lg p-12 text-center">
-                <p className="text-muted-foreground mb-2">No live data — check backend</p>
-                <p className="text-xs text-muted-foreground">Refresh or check your backend connectivity.</p>
+                <p className="text-muted-foreground mb-2">No alerts are available from the backend.</p>
+                <p className="text-xs text-muted-foreground">
+                  Confirm the alerts endpoint is available at <span className="font-mono">/api/alerts</span> and your API URL is configured correctly.
+                </p>
               </div>
             )}
           </div>

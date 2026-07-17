@@ -3,8 +3,15 @@ import apiClient from './api';
 // Service for interacting with AI/ML endpoints to get predictions, health scores, and recommendations for transformers
 const aiService = {
   getPredictions: async () => {
-    const response = await apiClient.get('/ml/predict');
-    return response.data;
+    try {
+      const response = await apiClient.get('/ml/predict');
+      return response.data;
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        return [];
+      }
+      throw error;
+    }
   },
 
   getFaultPrediction: async (transformerId) => {

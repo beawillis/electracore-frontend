@@ -10,6 +10,7 @@ import { useDevices } from '../hooks/useDevices'
 import { useTransformers } from '../hooks/useTransformers'
 import { useLiveReadings } from '../hooks/useSensors'
 import { formatLiveValue } from '../utils/liveTelemetry'
+import { LiveTelemetryChart } from '../../components/telemetry/LiveTelemetryChart'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -19,7 +20,7 @@ export default function DashboardPage() {
   const { transformers } = useTransformers()
   const { devices } = useDevices(selectedTransformerId ? { transformerId: selectedTransformerId } : {})
   const activeTransformerId = selectedTransformerId || transformers[0]?.id || transformers[0]?._id || transformers[0]?.transformerId || ''
-  const { readings: liveReadings, loading: liveLoading } = useLiveReadings(activeTransformerId)
+  const { readings: liveReadings, loading: liveLoading, historySeries: liveHistorySeries } = useLiveReadings(activeTransformerId)
   const role = String(user?.role || '').toLowerCase()
   const requiresSpecificAsset = role === 'operator' || role === 'engineer'
   const statsFilters = requiresSpecificAsset
@@ -45,6 +46,12 @@ export default function DashboardPage() {
     if (typeof value === 'string' || typeof value === 'number') return value
     return '-'
   }
+
+  const totalTransformers = displayStat(stats?.totalTransformers, stats?.transformers)
+  const activeDevices = displayStat(stats?.activeDevices, stats?.devices)
+  const systemHealth = displayStat(stats?.systemHealth, stats?.health)
+  const criticalAlerts = displayStat(stats?.criticalAlerts, stats?.alerts)
+  const statsUnavailable = !error && statsPayload && [totalTransformers, activeDevices, systemHealth, criticalAlerts].every((value) => value === '-')
 
   useEffect(() => {
     const token = localStorage.getItem('authToken') || localStorage.getItem('token')
@@ -182,21 +189,36 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">Total Transformers</p>
-              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.totalTransformers, stats?.transformers)}</p>
+              <p className="text-3xl font-bold text-foreground">{totalTransformers}</p>
             </div>
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">Active Devices</p>
-              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.activeDevices, stats?.devices)}</p>
+              <p className="text-3xl font-bold text-foreground">{activeDevices}</p>
             </div>
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">System Health</p>
-              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.systemHealth, stats?.health)}</p>
+              <p className="text-3xl font-bold text-foreground">{systemHealth}</p>
             </div>
             <div className="bg-card border border-border rounded-lg p-6">
               <p className="text-muted-foreground text-sm mb-2">Critical Alerts</p>
-              <p className="text-3xl font-bold text-foreground">{displayStat(stats?.criticalAlerts, stats?.alerts)}</p>
+              <p className="text-3xl font-bold text-foreground">{criticalAlerts}</p>
             </div>
           </div>
+          {statsUnavailable && (
+            <>
+              <div className="mb-6 p-4 bg-secondary/10 border border-secondary/20 rounded text-secondary text-sm">
+                Stats are unavailable from the backend. Confirm <span className="font-mono">/api/dashboard/stats</span> is returning the expected fields.
+              </div>
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-6 p-4 bg-card border border-border rounded-lg text-sm text-muted-foreground">
+                  <div className="mb-2 font-medium text-foreground">Dashboard stats diagnostics</div>
+                  <pre className="overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed">
+                    {JSON.stringify(statsPayload, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </>
+          )}
 
           <div className="bg-card border border-border rounded-lg p-6 mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -213,13 +235,18 @@ export default function DashboardPage() {
             {activeTransformerId ? (
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 {liveReadings.length > 0 ? (
-                  liveReadings.slice(0, 4).map((reading: any, index: number) => (
-                    <div key={reading.id || reading._id || `${reading.sensorType}-${index}`} className="bg-background border border-border rounded-lg p-4">
-                      <p className="text-sm text-muted-foreground">{reading.sensorType || reading.type || 'Sensor'}</p>
-                      <p className="text-2xl font-bold text-foreground mt-2">{formatLiveValue(reading)}</p>
-                      <p className="text-xs text-muted-foreground mt-3">{reading.timestamp ? new Date(reading.timestamp).toLocaleString() : 'Awaiting timestamp'}</p>
+                  <>
+                    {liveReadings.slice(0, 4).map((reading: any, index: number) => (
+                      <div key={reading.id || reading._id || `${reading.sensorType}-${index}`} className="bg-background border border-border rounded-lg p-4">
+                        <p className="text-sm text-muted-foreground">{reading.sensorType || reading.type || 'Sensor'}</p>
+                        <p className="text-2xl font-bold text-foreground mt-2">{formatLiveValue(reading)}</p>
+                        <p className="text-xs text-muted-foreground mt-3">{reading.timestamp ? new Date(reading.timestamp).toLocaleString() : 'Awaiting timestamp'}</p>
+                      </div>
+                    ))}
+                    <div className="md:col-span-2 xl:col-span-4 mt-6">
+                      <LiveTelemetryChart readings={liveReadings} historySeries={liveHistorySeries} />
                     </div>
-                  ))
+                  </>
                 ) : (
                   <div className="md:col-span-2 xl:col-span-4 bg-background border border-border rounded-lg p-4 text-sm text-muted-foreground">
                     No live telemetry has arrived from the backend for this transformer yet.

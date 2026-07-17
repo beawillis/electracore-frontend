@@ -10,7 +10,6 @@ let client = null;
 const mqttService = {
   connect: (options = {}) => {
     if (!MQTT_URL) {
-      console.warn('MQTT URL is not configured. Set NEXT_PUBLIC_MQTT_URL to enable MQTT.');
       return null;
     }
 

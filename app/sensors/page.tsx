@@ -6,6 +6,7 @@ import { Navbar } from '../components/Navbar'
 import { useLiveReadings } from '../hooks/useSensors'
 import { useTransformers } from '../hooks/useTransformers'
 import { formatLiveValue } from '../utils/liveTelemetry'
+import { LiveTelemetryChart } from '../../components/telemetry/LiveTelemetryChart'
 
 export default function SensorsPage() {
   const router = useRouter()
@@ -13,7 +14,7 @@ export default function SensorsPage() {
   const [selectedTransformerId, setSelectedTransformerId] = useState('')
   const { transformers } = useTransformers()
   const activeTransformerId = selectedTransformerId || transformers[0]?.id || transformers[0]?._id || transformers[0]?.transformerId || ''
-  const { readings, loading, error, refetch } = useLiveReadings(activeTransformerId)
+  const { readings, loading, error, refetch, historySeries } = useLiveReadings(activeTransformerId)
 
   const selectedTransformerName = useMemo(() => {
     const transformer = transformers.find((item: any) =>
@@ -131,6 +132,12 @@ export default function SensorsPage() {
               </div>
             )}
           </div>
+
+          {readings.length > 0 && (
+            <div className="mt-8">
+              <LiveTelemetryChart readings={readings} historySeries={historySeries} />
+            </div>
+          )}
         </div>
       </main>
     </div>

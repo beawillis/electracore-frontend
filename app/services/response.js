@@ -14,8 +14,11 @@ export const unwrapList = (payload) => {
   if (Array.isArray(data?.items)) return data.items;
   if (Array.isArray(data?.results)) return data.results;
   if (Array.isArray(data?.docs)) return data.docs;
+  if (Array.isArray(data?.reports)) return data.reports;
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.docs)) return payload.docs;
+  if (Array.isArray(payload?.reports)) return payload.reports;
   return [];
 };
 

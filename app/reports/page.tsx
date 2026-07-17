@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Navbar } from '../components/Navbar'
 import { useReports } from '../hooks/useReports'
+import ReportTimeseries from '../../components/reports/ReportTimeseries'
 
 
 const getCategoryColor = (category: string) => {
@@ -19,14 +20,16 @@ const getCategoryColor = (category: string) => {
 }
 
 // ReportsPage component that displays a list of generated reports with filtering and actions
-const formatDate = (date: Date) => {
+const formatDate = (date?: string | Date | null) => {
+  if (!date) return 'N/A'
+  const d = typeof date === 'string' ? new Date(date) : date
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(date)
+  }).format(d)
 }
 
 const labelFromKey = (key: string) => key.replace(/([A-Z])/g, ' $1').trim()
@@ -41,10 +44,10 @@ const buildReportPdf = (report: any) => {
     `Category: ${report.category}`,
     `Period: ${report.period}`,
     `Generated: ${formatDate(report.generatedDate)}`,
-    `Format: ${report.format}`,
+    `Format: ${report.format || 'pdf'}`,
     '',
     'Metrics',
-    ...Object.entries(report.stats).map(([key, value]) => `${labelFromKey(key)}: ${value}`),
+    ...Object.entries(report.stats || {}).map(([key, value]) => `${labelFromKey(key)}: ${value}`),
   ]
 
   const textCommands = lines
@@ -76,7 +79,7 @@ const buildReportPdf = (report: any) => {
 }
 
 const getReportShareText = (report: any) =>
-  `${report.title}\n${report.description}\nPeriod: ${report.period}\nGenerated: ${formatDate(report.generatedDate)}`
+  `${report.title}\n${report.description}\nPeriod: ${report.period || 'N/A'}\nGenerated: ${formatDate(report.generatedDate)}`
 
 // Utility to get color based on category
 export default function ReportsPage() {
@@ -86,6 +89,8 @@ export default function ReportsPage() {
   const [message, setMessage] = useState('')
   const [selectedReport, setSelectedReport] = useState<any>(null)
   const [shareReport, setShareReport] = useState<any>(null)
+
+  const { reports, count, loading: reportsLoading, error: reportsError, refetch: refetchReports } = useReports()
 
   useEffect(() => {
     const token = localStorage.getItem('authToken')
@@ -108,8 +113,6 @@ export default function ReportsPage() {
       </div>
     )
   }
-
-  const { reports, count, loading: reportsLoading, error: reportsError, refetch: refetchReports } = useReports()
   const categories = ['all']
   const filteredReports = reports || []
 
@@ -162,27 +165,42 @@ export default function ReportsPage() {
             </div>
           )}
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-card border border-border rounded-lg p-4">
-              <p className="text-muted-foreground text-xs mb-1">Total Reports</p>
-              <p className="text-3xl font-bold text-foreground">0</p>
+          {Boolean(reportsError) && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                <p className="font-semibold">Unable to load reports</p>
+                <p>{(reportsError as any)?.response?.data?.message || (reportsError as any)?.message || 'An unexpected error occurred.'}</p>
+              </div>
+          )}
+
+          {reportsLoading && (
+            <div className="mb-6 p-6 bg-card border border-border rounded-lg text-center text-muted-foreground">
+              Loading reports...
             </div>
-            <div className="bg-card border border-border rounded-lg p-4">
-              <p className="text-muted-foreground text-xs mb-1">Generated This Month</p>
-              <p className="text-3xl font-bold text-foreground">
-                0
-              </p>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4">
-              <p className="text-muted-foreground text-xs mb-1">System Uptime</p>
-              <p className="text-3xl font-bold text-foreground">99.8%</p>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-4">
-              <p className="text-muted-foreground text-xs mb-1">Alerts This Month</p>
-              <p className="text-3xl font-bold text-foreground">42</p>
-            </div>
-          </div>
+          )}
+
+          {!reportsLoading && (
+            <>
+              {/* Quick Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <p className="text-muted-foreground text-xs mb-1">Total Reports</p>
+                  <p className="text-3xl font-bold text-foreground">{count}</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <p className="text-muted-foreground text-xs mb-1">Generated This Month</p>
+                  <p className="text-3xl font-bold text-foreground">0</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <p className="text-muted-foreground text-xs mb-1">System Uptime</p>
+                  <p className="text-3xl font-bold text-foreground">99.8%</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <p className="text-muted-foreground text-xs mb-1">Alerts This Month</p>
+                  <p className="text-3xl font-bold text-foreground">42</p>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Category Filter */}
           <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
@@ -203,110 +221,111 @@ export default function ReportsPage() {
 
           {/* Reports Grid */}
           <div className="space-y-4">
-              {filteredReports.length > 0 ? (
-              filteredReports.map((report) => (
-                <div
-                  key={report.id}
-                  className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-colors"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Left Column - Report Info */}
-                    <div className="md:col-span-2">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div
-                          className="w-3 h-3 rounded-full mt-1"
-                          style={{ backgroundColor: getCategoryColor(report.category) }}
-                        ></div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground text-lg">{report.title}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">{report.description}</p>
-                        </div>
-                      </div>
-
-                      {/* Report Stats */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                        {Object.entries(report.stats).map(([key, value]) => (
-                          <div key={key} className="bg-background rounded p-3">
-                            <p className="text-xs text-muted-foreground mb-1 capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').trim()}
-                            </p>
-                            <p className="text-sm font-semibold text-foreground">
-                              {typeof value === 'number' && (key.includes('Rate') || key.includes('Uptime') || key.includes('Reduction') || key.includes('Savings'))
-                                ? `${value}${key.includes('Savings') ? '' : '%'}`
-                                : value}
-                            </p>
+            {filteredReports.length > 0 ? (
+              filteredReports.map((report: any) => {
+                const reportKey = report.id || report._id || report.reportId || `${report.title || 'report'}-${report.period}`
+                return (
+                  <div
+                    key={reportKey}
+                    className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-colors"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="md:col-span-2">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div
+                            className="w-3 h-3 rounded-full mt-1"
+                            style={{ backgroundColor: getCategoryColor(report.category) }}
+                          ></div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-foreground text-lg">{report.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{report.description}</p>
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Report Meta */}
-                      <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
-                        <span>Period: <span className="text-foreground font-medium">{report.period}</span></span>
-                        <span>Generated: <span className="text-foreground font-medium">{formatDate(report.generatedDate)}</span></span>
-                        <span>Format: <span className="text-foreground font-medium">{report.format}</span></span>
-                      </div>
-                    </div>
-
-                    {/* Right Column - Actions */}
-                    <div className="flex flex-col gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleDownload(report)}
-                        className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium"
-                      >
-                        Download
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedReport(report)}
-                        className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
-                      >
-                        View Details
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShareReport(shareReport?.id === report.id ? null : report)}
-                        className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
-                      >
-                        Share
-                      </button>
-                      {shareReport?.id === report.id && (
-                        <div className="bg-background border border-border rounded p-3 space-y-2">
-                          <button
-                            type="button"
-                            onClick={() => handleNativeShare(report)}
-                            className="w-full text-left text-sm text-foreground hover:text-primary"
-                          >
-                            Share with device options
-                          </button>
-                          <a
-                            href={`https://wa.me/?text=${encodeURIComponent(getReportShareText(report))}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block text-sm text-foreground hover:text-primary"
-                          >
-                            WhatsApp
-                          </a>
-                          <a
-                            href={`sms:?&body=${encodeURIComponent(getReportShareText(report))}`}
-                            className="block text-sm text-foreground hover:text-primary"
-                          >
-                            Message
-                          </a>
-                          <a
-                            href={`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(report.title)}&body=${encodeURIComponent(getReportShareText(report))}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block text-sm text-foreground hover:text-primary"
-                          >
-                            Gmail
-                          </a>
                         </div>
-                      )}
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                          {Object.entries(report.stats || {}).map(([key, value]) => (
+                            <div key={key} className="bg-background rounded p-3">
+                              <p className="text-xs text-muted-foreground mb-1 capitalize">
+                                {key.replace(/([A-Z])/g, ' $1').trim()}
+                              </p>
+                              <p className="text-sm font-semibold text-foreground">
+                                {typeof value === 'number' && (key.includes('Rate') || key.includes('Uptime') || key.includes('Reduction') || key.includes('Savings'))
+                                  ? `${value}${key.includes('Savings') ? '' : '%'}`
+                                  : String(value)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+                          <span>Period: <span className="text-foreground font-medium">{report.period || 'N/A'}</span></span>
+                          <span>Generated: <span className="text-foreground font-medium">{formatDate(report.generatedDate)}</span></span>
+                          <span>Format: <span className="text-foreground font-medium">{report.format || 'pdf'}</span></span>
+                        </div>
+
+                        <ReportTimeseries reportId={report.id || report._id || report.reportId} />
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(report)}
+                          className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded transition-colors text-sm font-medium"
+                        >
+                          Download
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedReport(report)}
+                          className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShareReport(shareReport?.id === report.id ? null : report)}
+                          className="w-full px-4 py-2 bg-background border border-border hover:bg-background/80 text-foreground rounded transition-colors text-sm font-medium"
+                        >
+                          Share
+                        </button>
+                        {shareReport?.id === report.id && (
+                          <div className="bg-background border border-border rounded p-3 space-y-2">
+                            <button
+                              type="button"
+                              onClick={() => handleNativeShare(report)}
+                              className="w-full text-left text-sm text-foreground hover:text-primary"
+                            >
+                              Share with device options
+                            </button>
+                            <a
+                              href={`https://wa.me/?text=${encodeURIComponent(getReportShareText(report))}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block text-sm text-foreground hover:text-primary"
+                            >
+                              WhatsApp
+                            </a>
+                            <a
+                              href={`sms:?&body=${encodeURIComponent(getReportShareText(report))}`}
+                              className="block text-sm text-foreground hover:text-primary"
+                            >
+                              Message
+                            </a>
+                            <a
+                              href={`https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(report.title)}&body=${encodeURIComponent(getReportShareText(report))}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block text-sm text-foreground hover:text-primary"
+                            >
+                              Gmail
+                            </a>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             ) : (
               <div className="bg-card border border-border rounded-lg p-12 text-center">
                 <p className="text-muted-foreground">No reports found in this category</p>

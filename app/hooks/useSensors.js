@@ -8,6 +8,7 @@ import { normalizeSensorReadings } from '../utils/liveTelemetry';
 // Custom hooks for fetching sensor data and details using React Query
 export const useLiveReadings = (transformerId) => {
   const [liveSocketReadings, setLiveSocketReadings] = useState([]);
+  const [liveHistory, setLiveHistory] = useState({});
   const { data, isLoading, error, refetch } = useQuery(
     ['liveReadings', transformerId],
     () => sensorService.getLiveReadings(transformerId),
@@ -22,15 +23,32 @@ export const useLiveReadings = (transformerId) => {
   useEffect(() => {
     if (!transformerId) {
       setLiveSocketReadings([]);
+      setLiveHistory({});
       return;
     }
 
     socketService.subscribeToTransformer(transformerId);
 
+    const appendHistory = (reading) => {
+      const sensorType = String(reading.sensorType || reading.type || 'sensor');
+      const value = typeof reading.value === 'number' ? reading.value : Number(reading.value) || 0;
+      const timestamp = reading.timestamp ? new Date(reading.timestamp).toISOString() : new Date().toISOString();
+      setLiveHistory((current) => {
+        const existing = current[sensorType] || [];
+        const next = [...existing, { timestamp, value, unit: reading.unit || '' }];
+        return {
+          ...current,
+          [sensorType]: next.slice(-20),
+        };
+      });
+    };
+
     const applyPayload = (payload) => {
       if (!payload) return;
       const normalized = normalizeSensorReadings(payload, transformerId);
       if (!normalized.length) return;
+
+      normalized.forEach((reading) => appendHistory(reading));
 
       setLiveSocketReadings((current) => {
         const next = [...current];
@@ -106,6 +124,17 @@ export const useLiveReadings = (transformerId) => {
   }, [transformerId]);
 
   const queryReadings = useMemo(() => normalizeSensorReadings(data, transformerId), [data, transformerId]);
+  const historySeries = useMemo(() => {
+    return Object.entries(liveHistory).map(([sensorType, points]) => ({
+      sensorType,
+      unit: points[0]?.unit || '',
+      data: points.map((point) => ({
+        ...point,
+        label: new Date(point.timestamp).toLocaleTimeString(),
+      })),
+    }));
+  }, [liveHistory]);
+
   const mergedReadings = useMemo(() => {
     if (!liveSocketReadings.length) return queryReadings;
     const next = [...queryReadings];
@@ -125,6 +154,7 @@ export const useLiveReadings = (transformerId) => {
     loading: isLoading,
     error,
     refetch,
+    historySeries,
   };
 };
 
